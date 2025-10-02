@@ -1,10 +1,17 @@
 package org.firstinspires.ftc.teamcode;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gyroscope;
+
+import org.json.JSONObject;
+
+import java.util.List;
 
 @TeleOp
 
@@ -16,13 +23,18 @@ public class MyFirstJAVAopMode extends LinearOpMode {
     private DcMotor backRight;
     private DigitalChannel digitalTouch;
     private DistanceSensor sensorColorRange;
+    private Limelight3A limelight;
     //private Servo servoTest;
 
 
     @Override
     public void runOpMode() {
       //  imu = hardwareMap.get(Gyroscope.class, "imu");
-       frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+       limelight = hardwareMap.get(Limelight3A.class, "limelight");
+       telemetry.setMsTransmissionInterval(11);
+       limelight.pipelineSwitch(0);
+       limelight.start();
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
@@ -53,9 +65,17 @@ public class MyFirstJAVAopMode extends LinearOpMode {
             telemetry.addData("rx", rx);
             telemetry.addData("Motor Power", frontLeft.getPower());
             telemetry.addData("Status", "Running");
+
+            LLResult result = limelight.getLatestResult();
+            List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+            for (LLResultTypes.FiducialResult fiducial : fiducials) {
+                int id = fiducial.getFiducialId(); // The ID number of the fiducial
+                //double x = detection.getTargetXDegrees(); // Where it is (left-right)
+                //double y = detection.getTargetYDegrees(); // Where it is (up-down)
+                //double StrafeDistance_3D = fiducial.getRobotPoseTargetSpace().getY();
+                telemetry.addData("Fiducial " , id);// "is " + distance + " meters away");
+            }
             telemetry.update();
-
-
         }
     }
 }
