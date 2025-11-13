@@ -3,22 +3,20 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gyroscope;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.List;
 
-@TeleOp
-
-public class MyFirstJAVAopMode extends LinearOpMode {
-    private Gyroscope imu;
+@Autonomous(name="BotAuto_", group="Bot")
+public class BotAuto_ extends LinearOpMode {private Gyroscope imu;
     private DcMotor frontLeft;
     private DcMotor frontRight;
     private DcMotor backLeft;
@@ -60,17 +58,9 @@ public class MyFirstJAVAopMode extends LinearOpMode {
     }
 
     public void conveyor() {
-        if (gamepad1.left_bumper) {
             gateWheel.setPower(1);
-           // gate.setPosition(1);
-        } else {
-            gateWheel.setPower(0);
-           // gate.setPosition(0);
-        }
+
         telemetry.addData("conveyor", gateWheel.getPower());
-       // telemetry.addData("gate", gate.getPosition());
-
-
     }
 
     public void drive() {
@@ -121,9 +111,9 @@ public class MyFirstJAVAopMode extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            drive();
+            //drive();
             //limelight();
-            feeder();
+            //feeder();
             conveyor();
             launcher();
 
@@ -132,3 +122,4 @@ public class MyFirstJAVAopMode extends LinearOpMode {
         telemetry.update();
     }
 }
+
