@@ -17,10 +17,10 @@ import java.util.List;
 
 public class MyFirstJAVAopMode extends LinearOpMode {
     private Gyroscope imu;
-    private DcMotor frontLeft;
-    private DcMotor frontRight;
-    private DcMotor backLeft;
-    private DcMotor backRight;
+   // private DcMotor frontLeft;
+   // private DcMotor frontRight;
+    //private DcMotor backLeft;
+   // private DcMotor backRight;
     private DigitalChannel digitalTouch;
     private DistanceSensor sensorColorRange;
     private Limelight3A limelight;
@@ -34,10 +34,10 @@ public class MyFirstJAVAopMode extends LinearOpMode {
        telemetry.setMsTransmissionInterval(11);
        limelight.pipelineSwitch(0);
        limelight.start();
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
+       // frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        //frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+       // backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+       // backRight = hardwareMap.get(DcMotor.class, "backRight");
        // digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
        // sensorColorRange = hardwareMap.get(DistanceSensor.class, "sensorColorRange");
        // servoTest = hardwareMap.get(Servo.class, "servoTest");
@@ -56,24 +56,28 @@ public class MyFirstJAVAopMode extends LinearOpMode {
             x = gamepad1.left_stick_x;
             rx = gamepad1.right_stick_x;
 
-            frontLeft.setPower(x + y + rx);
-            frontRight.setPower(y - x -rx);
-            backLeft.setPower(y - x + rx);
-            backRight.setPower(y + x - rx);
+            //frontLeft.setPower(x + y + rx);
+            //frontRight.setPower(y - x -rx);
+            //backLeft.setPower(y - x + rx);
+            //backRight.setPower(y + x - rx);
             telemetry.addData("x", x);
             telemetry.addData("y", y);
             telemetry.addData("rx", rx);
-            telemetry.addData("Motor Power", frontLeft.getPower());
+            //telemetry.addData("Motor Power", frontLeft.getPower());
             telemetry.addData("Status", "Running");
+
 
             LLResult result = limelight.getLatestResult();
             List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
             for (LLResultTypes.FiducialResult fiducial : fiducials) {
                 int id = fiducial.getFiducialId(); // The ID number of the fiducial
-                //double x = detection.getTargetXDegrees(); // Where it is (left-right)
-                //double y = detection.getTargetYDegrees(); // Where it is (up-down)
-                //double StrafeDistance_3D = fiducial.getRobotPoseTargetSpace().getY();
-                telemetry.addData("Fiducial " , id);// "is " + distance + " meters away");
+                double xdegrees = fiducial.getTargetXDegrees(); // Where it is (left-right)
+                double ydegrees = fiducial.getTargetYDegrees(); // Where it is (up-down)
+                double distance = fiducial.getTargetPoseCameraSpace().getPosition(). z;
+                telemetry.addData("Fiducial " , id);
+                telemetry.addData("xdegrees",xdegrees);
+                telemetry.addData("ydegrees", ydegrees);
+                telemetry.addData("distance", distance);
             }
             telemetry.update();
         }
