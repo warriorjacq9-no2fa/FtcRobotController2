@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gyroscope;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class MyFirstJAVAopMode extends LinearOpMode {
     private DcMotor launcherRight;
     private DcMotor intakeM;
     private DcMotor conveyorRight;
-    //private Servo gate;
+    private Servo gate;
     private DigitalChannel digitalTouch;
     private DistanceSensor sensorColorRange;
     private Limelight3A limelight;
@@ -58,17 +59,22 @@ public class MyFirstJAVAopMode extends LinearOpMode {
         intakeM.setPower(1);
         telemetry.addData("Intake Power", intakeM.getPower());
     }
+    public void gate() {
+        if(gamepad2.right_bumper) {
+            gate.setPosition(.5);
+        } else {
+            gate.setPosition(1);
+        }
+    }
 
     public void conveyor() {
         if (gamepad2.left_bumper) {
             conveyorRight.setPower(1);
-            //gate.setPosition(1);
         } else {
             conveyorRight.setPower(0);
-            //gate.setPosition(0);
         }
         telemetry.addData("conveyor", conveyorRight.getPower());
-       // telemetry.addData("gate", gate.getPosition());
+
 
 
     }
@@ -110,7 +116,7 @@ public class MyFirstJAVAopMode extends LinearOpMode {
         conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
         launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
-        //gate = hardwareMap.get(Servo.class, "gate");
+        gate = hardwareMap.get(Servo.class, "gate");
 
         conveyorRight.setPower(0);
         launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);
