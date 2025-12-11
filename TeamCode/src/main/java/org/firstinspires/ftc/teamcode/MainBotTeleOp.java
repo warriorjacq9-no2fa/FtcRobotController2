@@ -5,7 +5,6 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -17,7 +16,7 @@ import java.util.List;
 
 @TeleOp
 
-public class MyFirstJAVAopMode extends LinearOpMode {
+public class MainBotTeleOp extends LinearOpMode {
     private Gyroscope imu;
     private DcMotor frontLeft;
     private DcMotor frontRight;
@@ -50,8 +49,15 @@ public class MyFirstJAVAopMode extends LinearOpMode {
     }
 
     public void launcher() {
-        launcherLeft.setPower(.75);
-        launcherRight.setPower(.75);
+        //launcherLeft.setPower(
+        if(gamepad2.y) {
+            launcherLeft.setPower(.69);
+            launcherRight.setPower(.69);
+        }
+        else {
+            launcherLeft.setPower(.6);
+            launcherRight.setPower(.6);
+        }
         telemetry.addData("Luancher", launcherLeft.getPower());
     }
 
