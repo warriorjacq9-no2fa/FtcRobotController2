@@ -156,6 +156,8 @@ public class BotAuto_ extends OpMode {
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
         gate = hardwareMap.get(Servo.class, "gate");
 
+        conveyorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        gate.setDirection(Servo.Direction.REVERSE);
 
         frontLeft.setZeroPowerBehavior(BRAKE);
         frontRight.setZeroPowerBehavior(BRAKE);
@@ -273,6 +275,7 @@ public class BotAuto_ extends OpMode {
         telemetry.addData("AutoState", autonomousState);
         telemetry.addData("LauncherState", launchState);
         telemetry.addData("Motor Power", frontLeft.getPower());
+        telemetry.addData("Gate Posisition", gate.getPosition());
         telemetry.update();
     }
 
@@ -306,8 +309,8 @@ public class BotAuto_ extends OpMode {
                 }
                 break;
             case GATEOPEN:
-                launcherRight.setPower(.6);
-                launcherLeft.setPower(.6);
+                launcherRight.setPower(.8);
+                launcherLeft.setPower(.8);
                 gate.setPosition(.5);
                 if (gate.getPosition() == (.5)) {
                     launchState = LaunchState.CONVEYOR;
@@ -344,7 +347,7 @@ public class BotAuto_ extends OpMode {
         final double TOL_MM = 10;
 
         // If timer exceeded .25, we are done
-        if (driveTimer.seconds() < (.5)) {
+        if (driveTimer.seconds() < (1.25)) {
 
             frontLeft.setPower(1);
             frontRight.setPower(1);
@@ -390,10 +393,10 @@ public class BotAuto_ extends OpMode {
         double leftTargetPosition = -(rx * TICKS_PER_MM);
 //        double rightTargetPosition = targetMm * TICKS_PER_MM;
 //
-        frontLeft.setTargetPosition((int) leftTargetPosition);
+//        frontLeft.setTargetPosition((int) leftTargetPosition);
 //        rightDrive.setTargetPosition((int) rightTargetPosition);
 //
-        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         frontLeft.setPower(1);
@@ -401,10 +404,15 @@ public class BotAuto_ extends OpMode {
         backLeft.setPower(1);
         backRight.setPower(- 1);
 
-        if ((Math.abs(leftTargetPosition - frontLeft.getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)) {
-            driveTimer.reset();
-        }
-
+//        if ((Math.abs(leftTargetPosition - frontLeft.getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)) {
+//            driveTimer.reset();
+//        }
+if (driveTimer.seconds() > holdSeconds){
+    frontLeft.setPower(0);
+    frontRight.setPower(0);
+    backLeft.setPower(0);
+    backRight.setPower(0);
+}
         return (driveTimer.seconds() > holdSeconds);
     }
 }
