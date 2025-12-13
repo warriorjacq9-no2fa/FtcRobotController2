@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gyroscope;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -91,6 +90,7 @@ public class BotAuto_ extends OpMode {
         GATEOPEN,
         CONVEYOR,
         GATECLOSE,
+        LAUNCHERS
     }
 
     /*
@@ -107,7 +107,8 @@ public class BotAuto_ extends OpMode {
         LAUNCH,
         DRIVING_AWAY_FROM_GOAL,
         RESET_AFTER_DRIVE,
-        ROTATING,
+        WAIT_FOR_LAUNCH,
+        DRIVING_TOWARDS_GOAL,
         DRIVING_OFF_LINE,
         COMPLETE;
     }
@@ -198,11 +199,13 @@ public class BotAuto_ extends OpMode {
     @Override
     public void start() {
         driveTimer.reset ();
+        gate.setPosition(0);
     }
 
     /*
      * This code runs REPEATEDLY after the driver hits START but before they hit STOP.
      */
+    int count = 3;
     @Override
     public void loop() {
         /*
@@ -226,7 +229,7 @@ public class BotAuto_ extends OpMode {
 
 
             case DRIVING_AWAY_FROM_GOAL:
-                if (drive(DRIVE_SPEED, -4, DistanceUnit.INCH, 1)) {
+                if (drive(1, DistanceUnit.INCH, 1)) {
                     stopAllDrive();
                     autonomousState = AutonomousState.RESET_AFTER_DRIVE;
                 }
@@ -239,26 +242,41 @@ public class BotAuto_ extends OpMode {
 
             case LAUNCH:
                 if ((launch(true))) {
-                    autonomousState = AutonomousState.ROTATING;
-                }
+                    autonomousState = AutonomousState.DRIVING_OFF_LINE;
+                    driveTimer.reset();
+                    launcherLeft.setPower(0);
+                    launcherRight.setPower(0);
+                    conveyorRight.setPower(0);
+                } else autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
                 break;
 
-
-            case ROTATING:
-                if (alliance == Alliance.RED) {
-                    robotRotationAngle = 45;
-                } else if (alliance == Alliance.BLUE) {
-                    robotRotationAngle = -45;
+            case WAIT_FOR_LAUNCH:
+                if(launch(false)) {
+                    count--;
+                    if(count <= 0) {
+                        autonomousState = AutonomousState.DRIVING_TOWARDS_GOAL;
+                        driveTimer.reset();
+                        launcherLeft.setPower(0);
+                        launcherRight.setPower(0);
+                        conveyorRight.setPower(0);
+                    }
+                    else autonomousState = AutonomousState.LAUNCH;
                 }
-
-                if (rotate(ROTATE_SPEED, robotRotationAngle, AngleUnit.DEGREES, 1)) {
-//                    frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                break;
+            case DRIVING_TOWARDS_GOAL:
+                if(drive(-1, DistanceUnit.INCH, 1)) {
+                    stopAllDrive();
+                    driveTimer.reset();
                     autonomousState = AutonomousState.DRIVING_OFF_LINE;
                 }
                 break;
 
             case DRIVING_OFF_LINE:
-                if (drive(DRIVE_SPEED, -26, DistanceUnit.INCH, 1)) {
+                telemetry.addData("Driving", "Off line");
+                telemetry.addData("Drive timer", driveTimer.seconds());
+                telemetry.update();
+                if (drive_side(1, DistanceUnit.INCH, 1)) {
+                    stopAllDrive();
                     autonomousState = AutonomousState.COMPLETE;
                 }
                 break;
@@ -280,6 +298,7 @@ public class BotAuto_ extends OpMode {
     }
 
     private void stopAllDrive() {
+        driveTimer.reset();
     }
 
     private void resetAllDriveEncoders() {
@@ -292,6 +311,7 @@ public class BotAuto_ extends OpMode {
     public void stop() {
     }
 
+    private ElapsedTime spinTimer = new ElapsedTime();
     /**
      * Launches one ball, when a shot is requested spins up the motor and once it is above a minimum
      * velocity, runs the feeder servos for the right amount of time to feed the next ball.
@@ -305,58 +325,89 @@ public class BotAuto_ extends OpMode {
         switch (launchState) {
             case IDLE:
                 if (shotRequested) {
-                    launchState = LaunchState.GATEOPEN;
+                    launchState = LaunchState.LAUNCHERS;
+                    spinTimer.reset();
                 }
                 break;
+
+            case LAUNCHERS:
+                launcherRight.setPower(.6);
+                launcherLeft.setPower(.6);
+                telemetry.addData("Spin Timer", spinTimer.seconds());
+                telemetry.update();
+                if(spinTimer.seconds() > 2) launchState = LaunchState.GATEOPEN;
+                break;
+
             case GATEOPEN:
-                launcherRight.setPower(.8);
-                launcherLeft.setPower(.8);
                 gate.setPosition(.5);
                 if (gate.getPosition() == (.5)) {
                     launchState = LaunchState.CONVEYOR;
                     shotTimer.reset();
                 }
-
                 break;
+
             case CONVEYOR:
                 conveyorRight.setPower(1);
-                if (shotTimer.seconds() > (5)) {
+                telemetry.addData("Shot Timer", shotTimer.seconds());
+                telemetry.update();
+                if (shotTimer.seconds() > (0.75)) {
                     launchState = LaunchState.GATECLOSE;
                 }
+                break;
 
             case GATECLOSE:
-                gate.setPosition(1);
-                if (gate.getPosition() == (1)) {
-                    launchState = LaunchState.IDLE;
-                    return true;
-                }
+                launchState = LaunchState.IDLE;
+                return true;
 
         }
         return false;
     }
 
     /**
-     * @param speed        From 0-1
      * @param distance     In specified unit
      * @param unit the unit of measurement for distance
      * @param holdSeconds  the number of seconds to wait at position before returning true.
      * @return "true" if the motors are within tolerance of the target position for more than
      * holdSeconds. "false" otherwise.
      */
-    boolean drive(double speed, double distance, DistanceUnit unit, double holdSeconds) {
+    boolean drive(double power, DistanceUnit unit, double holdSeconds) {
         final double TOL_MM = 10;
 
         // If timer exceeded .25, we are done
-        if (driveTimer.seconds() < (1.25)) {
+        if (driveTimer.seconds() < (1)) {
 
-            frontLeft.setPower(1);
-            frontRight.setPower(1);
-            backLeft.setPower(1);
-            backRight.setPower(1);
+            frontLeft.setPower(power);
+            frontRight.setPower(power);
+            backLeft.setPower(power);
+            backRight.setPower(power);
         return false;
         }
 
             // Stop motors
+        else {
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+
+            return true;
+        }
+    }
+
+    boolean drive_side(double power, DistanceUnit unit, double holdSeconds) {
+        final double TOL_MM = 10;
+
+        // If timer exceeded .25, we are done
+        if (driveTimer.seconds() < (0.75)) {
+
+            frontLeft.setPower(1);
+            frontRight.setPower(-1);
+            backLeft.setPower(-1);
+            backRight.setPower(1);
+            return false;
+        }
+
+        // Stop motors
         else {
             frontLeft.setPower(0);
             frontRight.setPower(0);
