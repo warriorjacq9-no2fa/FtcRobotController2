@@ -110,7 +110,7 @@ public class BotAuto_ extends OpMode {
         WAIT_FOR_LAUNCH,
         DRIVING_TOWARDS_GOAL,
         DRIVING_OFF_LINE,
-        COMPLETE;
+        COMPLETE
     }
 
     private AutonomousState autonomousState;
@@ -120,7 +120,7 @@ public class BotAuto_ extends OpMode {
      */
     private enum Alliance {
         RED,
-        BLUE;
+        BLUE
     }
 
     /*
@@ -241,8 +241,8 @@ public class BotAuto_ extends OpMode {
                 break;
 
             case LAUNCH:
-                if ((launch(true))) {
-                    autonomousState = AutonomousState.DRIVING_OFF_LINE;
+                if ((launch(true, 3))) {
+                    autonomousState = AutonomousState.DRIVING_TOWARDS_GOAL;
                     driveTimer.reset();
                     launcherLeft.setPower(0);
                     launcherRight.setPower(0);
@@ -251,16 +251,12 @@ public class BotAuto_ extends OpMode {
                 break;
 
             case WAIT_FOR_LAUNCH:
-                if(launch(false)) {
-                    count--;
-                    if(count <= 0) {
-                        autonomousState = AutonomousState.DRIVING_TOWARDS_GOAL;
-                        driveTimer.reset();
-                        launcherLeft.setPower(0);
-                        launcherRight.setPower(0);
-                        conveyorRight.setPower(0);
-                    }
-                    else autonomousState = AutonomousState.LAUNCH;
+                if(launch(false, 3)) {
+                    autonomousState = AutonomousState.DRIVING_TOWARDS_GOAL;
+                    driveTimer.reset();
+                    launcherLeft.setPower(0);
+                    launcherRight.setPower(0);
+                    conveyorRight.setPower(0);
                 }
                 break;
             case DRIVING_TOWARDS_GOAL:
@@ -312,6 +308,7 @@ public class BotAuto_ extends OpMode {
     }
 
     private ElapsedTime spinTimer = new ElapsedTime();
+    static int shotCount = 0;
     /**
      * Launches one ball, when a shot is requested spins up the motor and once it is above a minimum
      * velocity, runs the feeder servos for the right amount of time to feed the next ball.
@@ -321,10 +318,11 @@ public class BotAuto_ extends OpMode {
      *                      state machine and launch the ball.
      * @return "true" for one cycle after a ball has been successfully launched, "false" otherwise.
      */
-    boolean launch(boolean shotRequested) {
+    boolean launch(boolean shotRequested, int count) {
         switch (launchState) {
             case IDLE:
                 if (shotRequested) {
+                    shotCount = count;
                     launchState = LaunchState.LAUNCHERS;
                     spinTimer.reset();
                 }
@@ -333,8 +331,6 @@ public class BotAuto_ extends OpMode {
             case LAUNCHERS:
                 launcherRight.setPower(.6);
                 launcherLeft.setPower(.6);
-                telemetry.addData("Spin Timer", spinTimer.seconds());
-                telemetry.update();
                 if(spinTimer.seconds() > 2) launchState = LaunchState.GATEOPEN;
                 break;
 
@@ -348,17 +344,20 @@ public class BotAuto_ extends OpMode {
 
             case CONVEYOR:
                 conveyorRight.setPower(1);
-                telemetry.addData("Shot Timer", shotTimer.seconds());
-                telemetry.update();
                 if (shotTimer.seconds() > (0.75)) {
-                    launchState = LaunchState.GATECLOSE;
+                    shotCount -= 1;
+                    if(shotCount <= 0)
+                        launchState = LaunchState.GATECLOSE;
                 }
                 break;
 
             case GATECLOSE:
-                launchState = LaunchState.IDLE;
-                return true;
-
+                gate.setPosition(0);
+                if(gate.getPosition() == 0){
+                    launchState = LaunchState.IDLE;
+                    return true;
+                }
+                break;
         }
         return false;
     }
