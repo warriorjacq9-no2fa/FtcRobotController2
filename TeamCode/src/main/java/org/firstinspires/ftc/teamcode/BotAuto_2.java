@@ -46,7 +46,7 @@ public class BotAuto_2 extends OpMode {
         switch(aState) {
             case DRIVING:
                 if(drive(1)) {
-                    aState = AutonomousState.COMPLETE
+                    aState = AutonomousState.COMPLETE;
                 }
                 break;
         }
