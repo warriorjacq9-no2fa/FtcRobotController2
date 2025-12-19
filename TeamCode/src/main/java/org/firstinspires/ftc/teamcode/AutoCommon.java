@@ -7,8 +7,14 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class AutoCommon {
+    final double WHEEL_DIAMETER_MM = 96;
+    final double ENCODER_TICKS_PER_REV = 537.7;
+    final double TICKS_PER_MM = (ENCODER_TICKS_PER_REV / (WHEEL_DIAMETER_MM * Math.PI));
+    final double TURN_RADIUS_MM = 404;
+
     private static DcMotor frontLeft;
     private static DcMotor frontRight;
     private static DcMotor backLeft;
@@ -22,13 +28,24 @@ public class AutoCommon {
 
     private enum LaunchState {
         IDLE,
+        LAUNCHERS,
         GATEOPEN,
         CONVEYOR,
-        GATECLOSE,
-        LAUNCHERS
+        FINSIH
     }
 
-    private static LaunchState launchState;
+    private enum DriveState {
+        IDLE,
+        RESET,
+        INIT,
+        DRIVE,
+        FINISH
+    }
+
+    // All states are public for telemetry usage
+    public static DriveState driveState;
+    public static LaunchState launchState;
+    
     private static ElapsedTime spinTimer = new ElapsedTime();
     private static ElapsedTime shotTimer = new ElapsedTime();
     private static int shotCount = 0;
@@ -55,93 +72,69 @@ public class AutoCommon {
         backLeft.setZeroPowerBehavior(BRAKE);
 
         launchState = LaunchState.IDLE;
+        driveState = DriveState.IDLE;
 
         driveTimer.reset();
         spinTimer.reset();
         shotTimer.reset();
     }
 
-    public static boolean drive(double power, double seconds) {
-        final double TOL_MM = 10;
+    public static boolean drive
+    (
+        boolean start,
+        double dx, double dy, double drx,
+        DistanceUnit dUnit, AngleUnit aUnit,
+        double holdSeconds
+    ) {
+        double x = (dUnit.toMm(dx)) * TICKS_PER_MM;
+        double y = (dUnit.toMm(dy)) * TICKS_PER_MM;
+        double rx = ((aUnit.toRadians(drx)) * TRACK_WIDTH_MM) * TURN_RADIUS_MM;
 
-        if (driveTimer.seconds() < seconds) {
+        switch(driveState) {
+            case IDLE:
+                if(start) {
+                    driveState = DriveState.RESET;
+                }
+                break;
 
-            frontLeft.setPower(power);
-            frontRight.setPower(power);
-            backLeft.setPower(power);
-            backRight.setPower(power);
-            return false;
-        } else {
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
-            return true;
+            case RESET:
+                frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                driveState = DriveState.INIT;
+                break;
+
+            case INIT:
+                frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                frontLeft.setTargetPosition(y + x + rx);
+                frontRight.setTargetPosition(y - x - rx);
+                backLeft.setTargetPosition(y - x + rx);
+                backRight.setTargetPosition(y + x - rx);
+                driveState = DriveState.DRIVE;
+                break;
+
+            case DRIVE:
+                if (!(frontLeft.isBusy() || frontRight.isBusy() ||
+                    backLeft.isBusy() || backRight.isBusy())) {
+                    driveTimer.reset();
+                    driveState = DriveState.FINISH;
+                }
+                break;
+            
+            case FINISH:
+                if(driveTimer.seconds() > holdSeconds) {
+                    driveState = DriveState.IDLE;
+                    return true;
+                }
+                break;
         }
-    }
 
-    public static boolean strafe(double power, double seconds) {
-        final double TOL_MM = 10;
-
-        // If timer exceeded .25, we are done
-        if (driveTimer.seconds() < seconds) {
-
-            frontLeft.setPower(power);
-            frontRight.setPower(-power);
-            backLeft.setPower(-power);
-            backRight.setPower(power);
-            return false;
-        }
-
-        // Stop motors
-        else {
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
-
-            return true;
-        }
-    }
-
-    boolean rotate(double speed, double angle, AngleUnit angleUnit, double holdSeconds) {
-        final double TOLERANCE_MM = 10;
-
-        /*
-         * Here we establish the number of mm that our drive wheels need to cover to create the
-         * requested angle. We use radians here because it makes the math much easier.
-         * Our robot will have rotated one radian when the wheels of the robot have driven
-         * 1/2 of the track width of our robot in a circle. This is also the radius of the circle
-         * that the robot tracks when it is rotating. So, to find the number of mm that our wheels
-         * need to travel, we just need to multiply the requested angle in radians by the radius
-         * of our turning circle.
-         */
-        double rx = angleUnit.toRadians(angle) * (TRACK_WIDTH_MM/2);
-
-        double leftTargetPosition = -(rx * TICKS_PER_MM);
-//        double rightTargetPosition = targetMm * TICKS_PER_MM;
-//
-//        frontLeft.setTargetPosition((int) leftTargetPosition);
-//        rightDrive.setTargetPosition((int) rightTargetPosition);
-//
-//        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        frontLeft.setPower(1);
-        frontRight.setPower(- 1);
-        backLeft.setPower(1);
-        backRight.setPower(- 1);
-
-//        if ((Math.abs(leftTargetPosition - frontLeft.getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)) {
-//            driveTimer.reset();
-//        }
-        if (driveTimer.seconds() > holdSeconds){
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
-        }
-        return (driveTimer.seconds() > holdSeconds);
+        return false;
     }
 
     public static boolean launch(boolean shotRequested, int count) {
