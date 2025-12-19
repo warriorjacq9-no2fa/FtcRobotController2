@@ -75,7 +75,6 @@ public class BotAuto_ extends OpMode {
 
         telemetry.addData("Press X", "for BLUE");
         telemetry.addData("Press B", "for RED");
-        telemetry.addData("Selected Alliance", alliance);
     }
 
     /*
@@ -83,6 +82,7 @@ public class BotAuto_ extends OpMode {
      */
     @Override
     public void start() {
+        telemetry.addData("Selected Alliance", alliance);
         gate.setPosition(0);
     }
 
@@ -133,6 +133,9 @@ public class BotAuto_ extends OpMode {
                 if(AutoCommon.drive(false, 6, 12, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.COMPLETE;
                 } 
+                break;
+
+            case COMPLETE:
                 break;
         }
 
