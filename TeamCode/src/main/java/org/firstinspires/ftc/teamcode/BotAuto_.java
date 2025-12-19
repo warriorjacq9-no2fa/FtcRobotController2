@@ -64,10 +64,6 @@ public class BotAuto_ extends OpMode {
 
     // Declare OpMode members.
     private Gyroscope imu;
-    private DcMotor frontLeft;
-    private DcMotor frontRight;
-    private DcMotor backLeft;
-    private DcMotor backRight;
     private DcMotor launcherLeft;
     private DcMotor launcherRight;
     //private DcMotor intakeM;
@@ -147,11 +143,10 @@ public class BotAuto_ extends OpMode {
          * to 'get' must correspond to the names assigned during the robot configuration
          * step (using the FTC Robot Controller app on the driver's station).
          */
+
+        AutoCommon.init(hardwareMap, "frontLeft", "frontRight", "backLeft", "backRight");
+
         //intakeM = hardwareMap.get(DcMotor.class, "intake");
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
         conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
         launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
@@ -159,12 +154,6 @@ public class BotAuto_ extends OpMode {
 
         conveyorRight.setDirection(DcMotorSimple.Direction.REVERSE);
         gate.setDirection(Servo.Direction.REVERSE);
-
-        frontLeft.setZeroPowerBehavior(BRAKE);
-        frontRight.setZeroPowerBehavior(BRAKE);
-        backRight.setZeroPowerBehavior(BRAKE);
-        backLeft.setZeroPowerBehavior(BRAKE);
-
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -198,14 +187,12 @@ public class BotAuto_ extends OpMode {
      */
     @Override
     public void start() {
-        driveTimer.reset ();
         gate.setPosition(0);
     }
 
     /*
      * This code runs REPEATEDLY after the driver hits START but before they hit STOP.
      */
-    int count = 3;
     @Override
     public void loop() {
         /*
@@ -229,7 +216,7 @@ public class BotAuto_ extends OpMode {
 
 
             case DRIVING_AWAY_FROM_GOAL:
-                if (drive(1, DistanceUnit.INCH, 1)) {
+                if (AutoCommon.drive(1, 1)) {
                     stopAllDrive();
                     autonomousState = AutonomousState.RESET_AFTER_DRIVE;
                 }
@@ -260,7 +247,7 @@ public class BotAuto_ extends OpMode {
                 }
                 break;
             case DRIVING_TOWARDS_GOAL:
-                if(drive(-1, DistanceUnit.INCH, 1)) {
+                if(AutoCommon.drive(-1, 1)) {
                     stopAllDrive();
                     driveTimer.reset();
                     autonomousState = AutonomousState.DRIVING_OFF_LINE;
@@ -271,7 +258,7 @@ public class BotAuto_ extends OpMode {
                 telemetry.addData("Driving", "Off line");
                 telemetry.addData("Drive timer", driveTimer.seconds());
                 telemetry.update();
-                if (drive_side(1, DistanceUnit.INCH, 1)) {
+                if (AutoCommon.drive_side(1, 0.75)) {
                     stopAllDrive();
                     autonomousState = AutonomousState.COMPLETE;
                 }
@@ -288,7 +275,6 @@ public class BotAuto_ extends OpMode {
          */
         telemetry.addData("AutoState", autonomousState);
         telemetry.addData("LauncherState", launchState);
-        telemetry.addData("Motor Power", frontLeft.getPower());
         telemetry.addData("Gate Posisition", gate.getPosition());
         telemetry.update();
     }
@@ -360,61 +346,6 @@ public class BotAuto_ extends OpMode {
                 break;
         }
         return false;
-    }
-
-    /**
-     * @param distance     In specified unit
-     * @param unit the unit of measurement for distance
-     * @param holdSeconds  the number of seconds to wait at position before returning true.
-     * @return "true" if the motors are within tolerance of the target position for more than
-     * holdSeconds. "false" otherwise.
-     */
-    boolean drive(double power, DistanceUnit unit, double holdSeconds) {
-        final double TOL_MM = 10;
-
-        // If timer exceeded .25, we are done
-        if (driveTimer.seconds() < (1)) {
-
-            frontLeft.setPower(power);
-            frontRight.setPower(power);
-            backLeft.setPower(power);
-            backRight.setPower(power);
-        return false;
-        }
-
-            // Stop motors
-        else {
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
-
-            return true;
-        }
-    }
-
-    boolean drive_side(double power, DistanceUnit unit, double holdSeconds) {
-        final double TOL_MM = 10;
-
-        // If timer exceeded .25, we are done
-        if (driveTimer.seconds() < (0.75)) {
-
-            frontLeft.setPower(1);
-            frontRight.setPower(-1);
-            backLeft.setPower(-1);
-            backRight.setPower(1);
-            return false;
-        }
-
-        // Stop motors
-        else {
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
-
-            return true;
-        }
     }
 
 
