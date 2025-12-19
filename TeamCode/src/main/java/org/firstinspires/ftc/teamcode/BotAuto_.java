@@ -15,11 +15,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Autonomous(name = "BotAuto_", group = "Bot")
 public class BotAuto_ extends OpMode {
-    final double WHEEL_DIAMETER_MM = 96;
-    final double ENCODER_TICKS_PER_REV = 537.7;
-    final double TICKS_PER_MM = (ENCODER_TICKS_PER_REV / (WHEEL_DIAMETER_MM * Math.PI));
-    final double TRACK_WIDTH_MM = 404;
-
     // Declare OpMode members.
     private Gyroscope imu;
     //private DcMotor intakeM;
@@ -28,12 +23,12 @@ public class BotAuto_ extends OpMode {
      * Here is our auto state machine enum. This captures each action we'd like to do in auto.
      */
     private enum AutonomousState {
+        DRIVING_AWAY,
+        DRIVING_AWAY_WAIT,
         LAUNCH,
-        DRIVING_AWAY_FROM_GOAL,
-        RESET_AFTER_DRIVE,
         WAIT_FOR_LAUNCH,
-        DRIVING_TOWARDS_GOAL,
-        DRIVING_OFF_LINE,
+        DRIVING_OFF,
+        DRIVING_OFF_WAIT,
         COMPLETE
     }
 
@@ -54,7 +49,7 @@ public class BotAuto_ extends OpMode {
      */
     @Override
     public void init() {
-        autonomousState = AutonomousState.DRIVING_AWAY_FROM_GOAL;
+        autonomousState = AutonomousState.DRIVING_AWAY;
 
         AutoCommon.init(hardwareMap);
 
@@ -69,9 +64,6 @@ public class BotAuto_ extends OpMode {
      */
     @Override
     public void init_loop() {
-
-        conveyorRight.setPower(0);
-
         /*
          * Here we allow the driver to select which alliance we are on using the gamepad.
          */
@@ -99,36 +91,17 @@ public class BotAuto_ extends OpMode {
      */
     @Override
     public void loop() {
-        /*
-         * TECH TIP: Switch Statements
-         * switch statements are an excellent way to take advantage of an enum. They work very
-         * similarly to a series of "if" statements, but allow for cleaner and more readable code.
-         * We switch between each enum member and write the code that should run when our enum
-         * reflects that state. We end each case with "break" to skip out of checking the rest
-         * of the members of the enum for a match, since if we find the "break" line in one case,
-         * we know our enum isn't reflecting a different state.
-         */
         switch (autonomousState) {
-            /*
-             * Since the first state of our auto is LAUNCH, this is the first "case" we encounter.
-             * This case is very simple. We call our .launch() function with "true" in the parameter.
-             * This "true" value informs our launch function that we'd like to start the process of
-             * firing a shot. We will call this function with a "false" in the next case. This
-             * "false" condition means that we are continuing to call the function every loop,
-             * allowing it to cycle through and continue the process of launching the first ball.
-             */
-
-
-            case DRIVING_AWAY_FROM_GOAL:
-                if (AutoCommon.drive(1, 1)) {
-                    stopAllDrive();
-                    autonomousState = AutonomousState.RESET_AFTER_DRIVE;
-                }
+            case DRIVING_AWAY:
+                if (AutoCommon.drive(true, 0, 18, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
+                    autonomousState = AutonomousState.LAUNCH;
+                } else autonomousState = AutonomousState.DRIVING_AWAY_WAIT;
                 break;
 
-            case RESET_AFTER_DRIVE:
-                resetAllDriveEncoders();
-                autonomousState = AutonomousState.LAUNCH;
+            case DRIVING_AWAY_WAIT:
+                if (AutoCommon.drive(false, 0, 18, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
+                    autonomousState = AutonomousState.LAUNCH;
+                }
                 break;
 
             case LAUNCH:
@@ -150,49 +123,25 @@ public class BotAuto_ extends OpMode {
                     conveyorRight.setPower(0);
                 }
                 break;
-            case DRIVING_TOWARDS_GOAL:
-                if(AutoCommon.drive(-1, 1)) {
-                    stopAllDrive();
-                    driveTimer.reset();
-                    autonomousState = AutonomousState.DRIVING_OFF_LINE;
-                }
+            case DRIVING_OFF:
+                if(AutoCommon.drive(true, 6, 12, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
+                    autonomousState = AutonomousState.COMPLETE;
+                } else autonomousState = AutonomousState.DRIVING_OFF_WAIT;
                 break;
 
-            case DRIVING_OFF_LINE:
-                telemetry.addData("Driving", "Off line");
-                telemetry.addData("Drive timer", driveTimer.seconds());
-                telemetry.update();
-                if (AutoCommon.strafe(1, 0.75)) {
-                    stopAllDrive();
+            case DRIVING_OFF_WAIT:
+                if(AutoCommon.drive(false, 6, 12, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.COMPLETE;
-                }
+                } 
                 break;
         }
 
-        /*
-         * Here is our telemetry that keeps us informed of what is going on in the robot. Since this
-         * part of the code exists outside of our switch statement, it will run once every loop.
-         * No matter what state our robot is in. This is the huge advantage of using state machines.
-         * We can have code inside of our state machine that runs only when necessary, and code
-         * after the last "case" that runs every loop. This means we can avoid a lot of
-         * "copy-and-paste" that non-state machine autonomous routines fall into.
-         */
         telemetry.addData("AutoState", autonomousState);
-        telemetry.addData("LauncherState", launchState);
-        telemetry.addData("Gate Posisition", gate.getPosition());
+        telemetry.addData("LauncherState", AutoCommon.launchState);
+        telemetry.addData("DriveState", AutoCommon.driveState);
         telemetry.update();
     }
 
-    private void stopAllDrive() {
-        driveTimer.reset();
-    }
-
-    private void resetAllDriveEncoders() {
-    }
-
-    /*
-     * This code runs ONCE after the driver hits STOP.
-     */
     @Override
     public void stop() {
     }
