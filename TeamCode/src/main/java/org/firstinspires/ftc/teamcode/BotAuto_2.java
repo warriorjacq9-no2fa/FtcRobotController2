@@ -14,7 +14,7 @@ public class BotAuto_2 extends OpMode {
     private DcMotor backLeft;
     private DcMotor backRight;
 
-    private ElapsedTime driveTimer;
+    private ElapsedTime driveTimer = new ElapsedTime();
 
     private enum AutonomousState {
         DRIVING,
@@ -35,10 +35,13 @@ public class BotAuto_2 extends OpMode {
         backRight.setZeroPowerBehavior(BRAKE);
         backLeft.setZeroPowerBehavior(BRAKE);
 
-        driveTimer.reset();
-
         aState = AutonomousState.DRIVING;
         telemetry.addData("Status", "Initialized");
+    }
+
+    @Override
+    public void start(){
+        driveTimer.reset();
     }
 
     @Override
@@ -46,7 +49,7 @@ public class BotAuto_2 extends OpMode {
         switch(aState) {
             case DRIVING:
                 if(drive(1)) {
-                    aState = AutonomousState.COMPLETE;
+                    //aState = AutonomousState.COMPLETE;
                 }
                 break;
         }
