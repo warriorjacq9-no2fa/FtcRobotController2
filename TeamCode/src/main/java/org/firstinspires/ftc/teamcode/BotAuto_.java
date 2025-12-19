@@ -132,7 +132,7 @@ public class BotAuto_ extends OpMode {
                 break;
 
             case LAUNCH:
-                if ((launch(true, 3))) {
+                if ((AutoCommon.launch(true, 3))) {
                     autonomousState = AutonomousState.DRIVING_TOWARDS_GOAL;
                     driveTimer.reset();
                     launcherLeft.setPower(0);
@@ -142,7 +142,7 @@ public class BotAuto_ extends OpMode {
                 break;
 
             case WAIT_FOR_LAUNCH:
-                if(launch(false, 3)) {
+                if(AutoCommon.launch(false, 3)) {
                     autonomousState = AutonomousState.DRIVING_TOWARDS_GOAL;
                     driveTimer.reset();
                     launcherLeft.setPower(0);
