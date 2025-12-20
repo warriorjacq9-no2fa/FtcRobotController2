@@ -1,14 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
-import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gyroscope;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -16,7 +9,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Autonomous(name = "BotAuto_", group = "Bot")
 public class BotAuto_ extends OpMode {
     // Declare OpMode members.
-    private Gyroscope imu;
     //private DcMotor intakeM;
 
     /*
@@ -83,7 +75,6 @@ public class BotAuto_ extends OpMode {
     @Override
     public void start() {
         telemetry.addData("Selected Alliance", alliance);
-        gate.setPosition(0);
     }
 
     /*
@@ -93,44 +84,36 @@ public class BotAuto_ extends OpMode {
     public void loop() {
         switch (autonomousState) {
             case DRIVING_AWAY:
-                if (AutoCommon.drive(true, 0, 18, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
+                if (AutoCommon.drive(true, 0, 18, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.LAUNCH;
                 } else autonomousState = AutonomousState.DRIVING_AWAY_WAIT;
                 break;
 
             case DRIVING_AWAY_WAIT:
-                if (AutoCommon.drive(false, 0, 18, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
+                if (AutoCommon.drive(false, 0, 18, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.LAUNCH;
                 }
                 break;
 
             case LAUNCH:
                 if ((AutoCommon.launch(true, 3))) {
-                    autonomousState = AutonomousState.DRIVING_TOWARDS_GOAL;
-                    driveTimer.reset();
-                    launcherLeft.setPower(0);
-                    launcherRight.setPower(0);
-                    conveyorRight.setPower(0);
+                    autonomousState = AutonomousState.DRIVING_OFF;
                 } else autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
                 break;
 
             case WAIT_FOR_LAUNCH:
                 if(AutoCommon.launch(false, 3)) {
-                    autonomousState = AutonomousState.DRIVING_TOWARDS_GOAL;
-                    driveTimer.reset();
-                    launcherLeft.setPower(0);
-                    launcherRight.setPower(0);
-                    conveyorRight.setPower(0);
+                    autonomousState = AutonomousState.DRIVING_OFF;
                 }
                 break;
             case DRIVING_OFF:
-                if(AutoCommon.drive(true, 6, 12, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
+                if(AutoCommon.drive(true, 6, 12, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.COMPLETE;
                 } else autonomousState = AutonomousState.DRIVING_OFF_WAIT;
                 break;
 
             case DRIVING_OFF_WAIT:
-                if(AutoCommon.drive(false, 6, 12, 0, DistanceUnit.INCHES, AngleUnit.DEGREES, 1)) {
+                if(AutoCommon.drive(false, 6, 12, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.COMPLETE;
                 } 
                 break;
@@ -143,10 +126,6 @@ public class BotAuto_ extends OpMode {
         telemetry.addData("LauncherState", AutoCommon.launchState);
         telemetry.addData("DriveState", AutoCommon.driveState);
         telemetry.update();
-    }
-
-    @Override
-    public void stop() {
     }
 }
 

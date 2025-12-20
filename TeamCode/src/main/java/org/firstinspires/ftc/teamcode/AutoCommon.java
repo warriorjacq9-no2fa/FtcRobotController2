@@ -3,7 +3,9 @@ package org.firstinspires.ftc.teamcode;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -26,15 +28,15 @@ public class AutoCommon {
     private static Servo gate;
 
 
-    private enum LaunchState {
+    public enum LaunchState {
         IDLE,
         LAUNCHERS,
         GATEOPEN,
         CONVEYOR,
-        FINSIH
+        FINISH
     }
 
-    private enum DriveState {
+    public enum DriveState {
         IDLE,
         RESET,
         INIT,
@@ -46,11 +48,11 @@ public class AutoCommon {
     public static DriveState driveState;
     public static LaunchState launchState;
     
-    private static ElapsedTime spinTimer = new ElapsedTime();
-    private static ElapsedTime shotTimer = new ElapsedTime();
+    private static final ElapsedTime spinTimer = new ElapsedTime();
+    private static final ElapsedTime shotTimer = new ElapsedTime();
     private static int shotCount = 0;
 
-    private static ElapsedTime driveTimer = new ElapsedTime();
+    private static final ElapsedTime driveTimer = new ElapsedTime();
 
     public static void init(HardwareMap hardwareMap) {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -88,7 +90,7 @@ public class AutoCommon {
     ) {
         double x = (dUnit.toMm(dx)) * TICKS_PER_MM;
         double y = (dUnit.toMm(dy)) * TICKS_PER_MM;
-        double rx = ((aUnit.toRadians(drx)) * TRACK_WIDTH_MM) * TURN_RADIUS_MM;
+        double rx = ((aUnit.toRadians(drx)) * TURN_RADIUS_MM) * TICKS_PER_MM;
 
         switch(driveState) {
             case IDLE:
@@ -111,10 +113,10 @@ public class AutoCommon {
                 backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                frontLeft.setTargetPosition(y + x + rx);
-                frontRight.setTargetPosition(y - x - rx);
-                backLeft.setTargetPosition(y - x + rx);
-                backRight.setTargetPosition(y + x - rx);
+                frontLeft.setTargetPosition((int) (y + x + rx));
+                frontRight.setTargetPosition((int) (y - x - rx));
+                backLeft.setTargetPosition((int) (y - x + rx));
+                backRight.setTargetPosition((int) (y + x - rx));
                 driveState = DriveState.DRIVE;
                 break;
 
@@ -140,6 +142,7 @@ public class AutoCommon {
     public static boolean launch(boolean shotRequested, int count) {
         switch (launchState) {
             case IDLE:
+                gate.setPosition(0);
                 if (shotRequested) {
                     shotCount = count;
                     launchState = LaunchState.LAUNCHERS;
