@@ -17,7 +17,8 @@ public class BotAuto_2 extends OpMode {
 
     @Override
     public void init() {
-        AutoCommon.init(hardwareMap);
+        AutoCommon.init(hardwareMap, telemetry, 0, 0, 0,
+                DistanceUnit.INCH, AngleUnit.DEGREES);
 
         aState = AutonomousState.DRIVING;
         telemetry.addData("Status", "Initialized");

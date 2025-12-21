@@ -15,12 +15,11 @@ public class BotAuto_ extends OpMode {
      * Here is our auto state machine enum. This captures each action we'd like to do in auto.
      */
     private enum AutonomousState {
-        DRIVING_AWAY,
-        DRIVING_AWAY_WAIT,
+        GET_NEXT_ACTION,
+        DRIVING,
+        DRIVING_WAIT,
         LAUNCH,
-        WAIT_FOR_LAUNCH,
-        DRIVING_OFF,
-        DRIVING_OFF_WAIT,
+        LAUNCH_WAIT,
         COMPLETE
     }
 
@@ -36,19 +35,26 @@ public class BotAuto_ extends OpMode {
 
     private Alliance alliance = Alliance.RED;
 
+    PathParser.DrivePath drivePath;
+
     /*
      * This code runs ONCE when the driver hits INIT.
      */
     @Override
     public void init() {
-        autonomousState = AutonomousState.DRIVING_AWAY;
+        autonomousState = AutonomousState.GET_NEXT_ACTION;
 
-        AutoCommon.init(hardwareMap);
+        drivePath = PathParser.parse(hardwareMap.appContext
+                .getResources().getXml(R.xml.drivepath), alliance.name(), telemetry);
+
+        AutoCommon.init(hardwareMap, telemetry, 0, 0, 0,
+                DistanceUnit.INCH, AngleUnit.DEGREES);
 
         //intakeM = hardwareMap.get(DcMotor.class, "intake");
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
+        telemetry.update();
     }
 
     /*
@@ -65,8 +71,8 @@ public class BotAuto_ extends OpMode {
             alliance = Alliance.BLUE;
         }
 
-        telemetry.addData("Press X", "for BLUE");
-        telemetry.addData("Press B", "for RED");
+        //telemetry.addData("Press X", "for BLUE");
+        //telemetry.addData("Press B", "for RED");
     }
 
     /*
@@ -77,47 +83,61 @@ public class BotAuto_ extends OpMode {
         telemetry.addData("Selected Alliance", alliance);
     }
 
+    int actionIndex = 0;
+    PathParser.PathAction action;
     /*
      * This code runs REPEATEDLY after the driver hits START but before they hit STOP.
      */
     @Override
     public void loop() {
+        PathParser.PointAction pointAction;
+        PathParser.LaunchAction launchAction;
         switch (autonomousState) {
-            case DRIVING_AWAY:
-                if (AutoCommon.drive(true, 0, 18, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
+            case GET_NEXT_ACTION:
+                if(actionIndex >= drivePath.actions.size()) {
+                    autonomousState = AutonomousState.COMPLETE;
+                    break;
+                }
+
+                action = drivePath.actions.get(actionIndex);
+                if(action.getClass().equals(PathParser.PointAction.class)) {
+                    autonomousState = AutonomousState.DRIVING;
+                } else if(action.getClass().equals(PathParser.LaunchAction.class)) {
                     autonomousState = AutonomousState.LAUNCH;
-                } else autonomousState = AutonomousState.DRIVING_AWAY_WAIT;
+                }
+                actionIndex++;
+                break;
+            case DRIVING:
+                pointAction = (PathParser.PointAction) action;
+                if (AutoCommon.drive(true,
+                        pointAction.x, pointAction.y, pointAction.rx,
+                        DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
+                    autonomousState = AutonomousState.GET_NEXT_ACTION;
+                } else autonomousState = AutonomousState.DRIVING_WAIT;
                 break;
 
-            case DRIVING_AWAY_WAIT:
-                if (AutoCommon.drive(false, 0, 18, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
-                    autonomousState = AutonomousState.LAUNCH;
+            case DRIVING_WAIT:
+                pointAction = (PathParser.PointAction) action;
+                if (AutoCommon.drive(false,
+                        pointAction.x, pointAction.y, pointAction.rx,
+                        DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
+                    autonomousState = AutonomousState.GET_NEXT_ACTION;
                 }
                 break;
 
             case LAUNCH:
-                if ((AutoCommon.launch(true, 3))) {
-                    autonomousState = AutonomousState.DRIVING_OFF;
-                } else autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
+                launchAction = (PathParser.LaunchAction) action;
+                if ((AutoCommon.launch(true, launchAction.count))) {
+                    autonomousState = AutonomousState.GET_NEXT_ACTION;
+                } else autonomousState = AutonomousState.LAUNCH_WAIT;
                 break;
 
-            case WAIT_FOR_LAUNCH:
-                if(AutoCommon.launch(false, 3)) {
-                    autonomousState = AutonomousState.DRIVING_OFF;
+            case LAUNCH_WAIT:
+                launchAction = (PathParser.LaunchAction) action;
+                if(AutoCommon.launch(false, launchAction.count)) {
+                    autonomousState = AutonomousState.GET_NEXT_ACTION;
                 }
                 break;
-            case DRIVING_OFF:
-                if(AutoCommon.drive(true, 6, 12, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
-                    autonomousState = AutonomousState.COMPLETE;
-                } else autonomousState = AutonomousState.DRIVING_OFF_WAIT;
-                break;
-
-            case DRIVING_OFF_WAIT:
-                if(AutoCommon.drive(false, 6, 12, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
-                    autonomousState = AutonomousState.COMPLETE;
-                } 
-                break;
-
             case COMPLETE:
                 break;
         }
@@ -125,6 +145,7 @@ public class BotAuto_ extends OpMode {
         telemetry.addData("AutoState", autonomousState);
         telemetry.addData("LauncherState", AutoCommon.launchState);
         telemetry.addData("DriveState", AutoCommon.driveState);
+        telemetry.addData("Current action ID", action.id);
         telemetry.update();
     }
 }
