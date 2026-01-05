@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.content.res.XmlResourceParser;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.util.ArrayList;
@@ -10,6 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class PathParser {
+    public static class XmlSyntaxException extends Exception {
+        public XmlSyntaxException(String message) {
+            super(message);
+        }
+    }
+
     public static abstract class PathAction {
         public int id;
     }
@@ -26,7 +33,9 @@ public class PathParser {
     }
 
     public static class DrivePath {
+        public DistanceUnit unit;
         public String alliance; // "RED" or "BLUE"
+        public PointAction origin;
         public List<PathAction> actions = new ArrayList<>();
     }
 
@@ -42,14 +51,34 @@ public class PathParser {
                     String tagName = parser.getName();
 
                     switch (tagName) {
-
                         case "path":
                             currentPath = new DrivePath();
                             currentPath.alliance = parser.getAttributeValue(null, "alliance");
+                            currentPath.unit = switch(parser.getAttributeValue(null, "unit")) {
+                                case "inches" -> DistanceUnit.INCH;
+                                case "mm" -> DistanceUnit.MM;
+                                default -> throw new XmlSyntaxException("path.unit must be one of [inches, mm]");
+                            }
                             drivePaths.add(currentPath);
-                            telemetry.addData("Found path", "Alliance: %s",
-                                    currentPath.alliance);
+                            telemetry.addData("Found path", "Alliance: %s, Units: %s",
+                                    currentPath.alliance, parser.getAttributeValue(null, "unit"));
                             break;
+
+                        case "origin":
+                            if (currentPath != null) {
+                                PointAction origin = new PointAction();
+                                point.id = 0;
+                                point.speed = 0;
+                                point.x = getDouble(parser, x);
+                                point.y = getDouble(parser, y);
+                                point.rx = getDouble(parser, rx);
+                                currentPath.origin = origin;
+                                telemetry.addData("Found origin", "X: %f Y: %f RX: %f ",
+                                    point.x, point.y, point.rx);
+                            } else throw new XmlSyntaxException(
+                                "Unexpected <origin> at line " + parser.getLineNumber() + 
+                                ", must be inside of a <path> tag"
+                            );
 
                         case "point":
                             if (currentPath != null) {
@@ -62,7 +91,10 @@ public class PathParser {
                                 currentPath.actions.add(point);
                                 telemetry.addData("Found point", "X: %f Y: %f RX: %f " +
                                         "Speed: %f", point.x, point.y, point.rx, point.speed);
-                            }
+                            } else throw new XmlSyntaxException(
+                                "Unexpected <point> at line " + parser.getLineNumber() + 
+                                ", must be inside of a <path> tag"
+                            );
                             break;
 
                         case "launch":
@@ -73,7 +105,10 @@ public class PathParser {
                                 currentPath.actions.add(launch);
                                 telemetry.addData("Found launch", "Count: %d",
                                         launch.count);
-                            }
+                            } else throw new XmlSyntaxException(
+                                "Unexpected <launch> at line " + parser.getLineNumber() + 
+                                ", must be inside of a <path> tag"
+                            );
                             break;
                     }
                 }

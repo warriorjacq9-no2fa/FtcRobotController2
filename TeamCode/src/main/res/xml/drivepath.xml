@@ -1,38 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Objects are executed in order of appearance in XML -->
 <!-- Speed is the number passed to DcMotor.setPower -->
-<!-- X and Y use the FTC coordinate system, and use inches as the unit -->
-<!-- RX is in degrees, and is relative to current orientation -->
+<!-- X and Y use the FTC coordinate system, and use the unit specified in <path>, inches or mm -->
+<!-- RX is in degrees, and is relative to current orientation, positive CCW -->
 <drivepath>
-    <path alliance="RED">
+    <path alliance="RED" unit="inches">
+        <origin
+            x="55" y="59" rx="-45"
+        />
         <point id="1" speed="1"
             x="0" y="0" rx="0"
         />
         <launch id="2" count="3"/>
         <point id="3" speed="1"
-            x="35" y="12" rx="45"
+            x="35" y="12" rx="-45"
         />
         <point id="4" speed="0.25"
             x="50" y="12" rx="0"
         />
         <point id="5" speed="1"
-            x="0" y="0" rx="-45"
+            x="0" y="0" rx="45"
         />
         <launch id="6" count="3"/>
     </path>
-    <path alliance="BLUE">
+    <path alliance="BLUE" unit="inches">
+        <origin
+            x="-55" y="59" rx="45"
+        />
     <point id="1" speed="1"
         x="0" y="0" rx="0"
         />
     <launch id="2" count="3"/>
     <point id="3" speed="1"
-        x="35" y="12" rx="45"
+        x="-35" y="12" rx="-45"
         />
     <point id="4" speed="0.25"
-        x="50" y="12" rx="0"
+        x="-50" y="12" rx="0"
         />
     <point id="5" speed="1"
-        x="0" y="0" rx="-45"
+        x="0" y="0" rx="45"
         />
     <launch id="6" count="3"/>
     </path>

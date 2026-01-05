@@ -47,8 +47,8 @@ public class BotAuto_ extends OpMode {
         drivePath = PathParser.parse(hardwareMap.appContext
                 .getResources().getXml(R.xml.drivepath), alliance.name(), telemetry);
 
-        AutoCommon.init(hardwareMap, telemetry, 0, 0, 0,
-                DistanceUnit.INCH, AngleUnit.DEGREES);
+        AutoCommon.init(hardwareMap, telemetry, drivePath.origin.x, drivePath.origin.y, drivePath.origin.rx,
+                drivePath.unit, AngleUnit.DEGREES);
 
         //intakeM = hardwareMap.get(DcMotor.class, "intake");
 
@@ -111,7 +111,7 @@ public class BotAuto_ extends OpMode {
                 pointAction = (PathParser.PointAction) action;
                 if (AutoCommon.drive(true,
                         pointAction.x, pointAction.y, pointAction.rx,
-                        DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
+                        drivePath.unit, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.GET_NEXT_ACTION;
                 } else autonomousState = AutonomousState.DRIVING_WAIT;
                 break;
@@ -120,7 +120,7 @@ public class BotAuto_ extends OpMode {
                 pointAction = (PathParser.PointAction) action;
                 if (AutoCommon.drive(false,
                         pointAction.x, pointAction.y, pointAction.rx,
-                        DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
+                        drivePath.unit, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.GET_NEXT_ACTION;
                 }
                 break;
