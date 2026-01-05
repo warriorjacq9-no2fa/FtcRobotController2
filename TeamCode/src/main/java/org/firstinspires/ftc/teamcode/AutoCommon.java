@@ -77,7 +77,7 @@ public class AutoCommon {
                             DistanceUnit du, AngleUnit au) {
         currentX = du.toMm(startX);
         currentY = du.toMm(startY);
-        currentRX = au.toDegrees(startRX);
+        currentRX = au.toRadians(startRX);
         try {
             frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
             frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -160,7 +160,7 @@ public class AutoCommon {
 
         currentX = x;
         currentY = y;
-        currentRX += aUnit.toDegrees(rx);
+        currentRX += aUnit.toRadians(rx);
         return drive_rel(start, dx, dy, 0, dUnit, aUnit, holdSeconds);
     }
 
