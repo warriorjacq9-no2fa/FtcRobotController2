@@ -151,11 +151,12 @@ public class AutoCommon {
         double g_dx = dUnit.fromMm(currentX) - x;
         double g_dy = dUnit.fromMm(currentY) - y;
 
-        // Get robot-relative movement using trigonometry
-        double theta = Math.atan(g_dx / g_dy) - currentRX;
-        double g_hyp = g_dx / Math.sin(currentRX + theta);
-        double dx = Math.sin(theta) * g_hyp;
-        double dy = Math.cos(theta) * g_hyp;
+        // Get robot-relative movement
+        double cos = Math.cos(currentRX);
+        double sin = Math.sin(currentRX);
+        
+        double dx = cos * g_dx + sin * g_dy;
+        double dy = -sin * g_dx + cos * g_dy;
 
         currentX = x;
         currentY = y;
