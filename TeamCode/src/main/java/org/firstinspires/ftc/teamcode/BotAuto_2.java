@@ -28,13 +28,13 @@ public class BotAuto_2 extends OpMode {
     public void loop() {
         switch (aState) {
             case DRIVING:
-                if (AutoCommon.drive(true, 0, 6, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
+                if (AutoCommon.drive_rel(true, 0, 6, 0, 1, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
                     aState = AutonomousState.COMPLETE;
                 } else aState = AutonomousState.DRIVING_WAIT;
                 break;
 
             case DRIVING_WAIT:
-                if (AutoCommon.drive(false, 0, 6, 0, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
+                if (AutoCommon.drive_rel(false, 0, 6, 0, 1, DistanceUnit.INCH, AngleUnit.DEGREES, 1)) {
                     aState = AutonomousState.COMPLETE;
                 }
                 break;

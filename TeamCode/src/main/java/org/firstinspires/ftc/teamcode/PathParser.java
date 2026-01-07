@@ -54,10 +54,10 @@ public class PathParser {
                         case "path":
                             currentPath = new DrivePath();
                             currentPath.alliance = parser.getAttributeValue(null, "alliance");
-                            currentPath.unit = switch(parser.getAttributeValue(null, "unit")) {
-                                case "inches" -> DistanceUnit.INCH;
-                                case "mm" -> DistanceUnit.MM;
-                                default -> throw new XmlSyntaxException("path.unit must be one of [inches, mm]");
+                            switch(parser.getAttributeValue(null, "unit")) {
+                                case "inches" : currentPath.unit = DistanceUnit.INCH; break;
+                                case "mm" : currentPath.unit = DistanceUnit.MM; break;
+                                default : throw new XmlSyntaxException("path.unit must be one of [inches, mm]");
                             }
                             drivePaths.add(currentPath);
                             telemetry.addData("Found path", "Alliance: %s, Units: %s",
@@ -66,19 +66,20 @@ public class PathParser {
 
                         case "origin":
                             if (currentPath != null) {
-                                PointAction origin = new PointAction();
+                                PointAction point = new PointAction();
                                 point.id = 0;
                                 point.speed = 0;
-                                point.x = getDouble(parser, x);
-                                point.y = getDouble(parser, y);
-                                point.rx = getDouble(parser, rx);
-                                currentPath.origin = origin;
+                                point.x = getDouble(parser, "x");
+                                point.y = getDouble(parser, "y");
+                                point.rx = getDouble(parser, "rx");
+                                currentPath.origin = point;
                                 telemetry.addData("Found origin", "X: %f Y: %f RX: %f ",
                                     point.x, point.y, point.rx);
                             } else throw new XmlSyntaxException(
                                 "Unexpected <origin> at line " + parser.getLineNumber() + 
                                 ", must be inside of a <path> tag"
                             );
+                            break;
 
                         case "point":
                             if (currentPath != null) {
@@ -116,8 +117,8 @@ public class PathParser {
                 eventType = parser.next();
             }
         } catch (Exception e) {
-            telemetry.addData("Error while parsing", "%s: %s",
-                    e, e.getMessage());
+            telemetry.addData("Error while parsing", "%s: %s, line %d",
+                    e, e.getMessage(), parser.getLineNumber());
         }
         parser.close();
         Optional<DrivePath> dp_opt = drivePaths.stream().filter(
@@ -131,6 +132,13 @@ public class PathParser {
     }
 
     private static double getDouble(XmlResourceParser parser, String attr) {
-        return Double.parseDouble(parser.getAttributeValue(null, attr));
+        String val = parser.getAttributeValue(null, attr);
+        if (val == null) {
+            throw new IllegalArgumentException(
+                    "Missing required attribute '" + attr +
+                            "' at line " + parser.getLineNumber()
+            );
+        }
+        return Double.parseDouble(val);
     }
 }

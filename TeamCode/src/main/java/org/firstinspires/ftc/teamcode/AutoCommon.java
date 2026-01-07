@@ -93,7 +93,7 @@ public class AutoCommon {
             limelight = hardwareMap.get(Limelight3A.class, "limelight");
             limelight.pipelineSwitch(0);
 
-            conveyorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+            conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
             gate.setDirection(Servo.Direction.REVERSE);
 
             frontLeft.setZeroPowerBehavior(BRAKE);
@@ -145,11 +145,12 @@ public class AutoCommon {
     (
         boolean start,
         double x, double y, double rx,
+        double speed,
         DistanceUnit dUnit, AngleUnit aUnit,
         double holdSeconds
     ) {
-        double g_dx = dUnit.fromMm(currentX) - x;
-        double g_dy = dUnit.fromMm(currentY) - y;
+        double g_dx = x - dUnit.fromMm(currentX);
+        double g_dy = y - dUnit.fromMm(currentY);
 
         // Get robot-relative movement
         double cos = Math.cos(currentRX);
@@ -158,15 +159,13 @@ public class AutoCommon {
         double dx = cos * g_dx + sin * g_dy;
         double dy = -sin * g_dx + cos * g_dy;
 
-        currentX = x;
-        currentY = y;
-        currentRX += aUnit.toRadians(rx);
-        return drive_rel(start, dx, dy, 0, dUnit, aUnit, holdSeconds);
+        return drive_rel(start, dx, dy, 0, speed, dUnit, aUnit, holdSeconds);
     }
 
-    private static boolean drive_rel(
+    public static boolean drive_rel(
             boolean start,
             double dx, double dy, double drx,
+            double speed,
             DistanceUnit dUnit, AngleUnit aUnit,
             double holdSeconds
     ) {
@@ -195,6 +194,11 @@ public class AutoCommon {
                 backLeft.setTargetPosition((int) (y - x + rx));
                 backRight.setTargetPosition((int) (y + x - rx));
 
+                frontLeft.setPower(speed);
+                frontRight.setPower(speed);
+                backLeft.setPower(speed);
+                backRight.setPower(speed);
+
                 frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -212,6 +216,9 @@ public class AutoCommon {
 
             case FINISH:
                 if(driveTimer.seconds() > holdSeconds) {
+                    currentX += x;
+                    currentY += y;
+                    currentRX += rx;
                     driveState = DriveState.IDLE;
                     return true;
                 }

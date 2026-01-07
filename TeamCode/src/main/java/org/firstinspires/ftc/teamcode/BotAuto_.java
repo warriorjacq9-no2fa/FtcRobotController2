@@ -44,9 +44,6 @@ public class BotAuto_ extends OpMode {
     public void init() {
         autonomousState = AutonomousState.GET_NEXT_ACTION;
 
-        drivePath = PathParser.parse(hardwareMap.appContext
-                .getResources().getXml(R.xml.drivepath), alliance.name(), telemetry);
-
         AutoCommon.init(hardwareMap, telemetry, drivePath.origin.x, drivePath.origin.y, drivePath.origin.rx,
                 drivePath.unit, AngleUnit.DEGREES);
 
@@ -81,6 +78,9 @@ public class BotAuto_ extends OpMode {
     @Override
     public void start() {
         telemetry.addData("Selected Alliance", alliance);
+        drivePath = PathParser.parse(hardwareMap.appContext
+                .getResources().getXml(R.xml.drivepath), alliance.name(), telemetry);
+        AutoCommon.drive(false, 0, 0, 0, 1,DistanceUnit.INCH, AngleUnit.DEGREES, 1);
     }
 
     int actionIndex = 0;
@@ -90,6 +90,8 @@ public class BotAuto_ extends OpMode {
      */
     @Override
     public void loop() {
+        AutoCommon.drive(false, 0, 0, 0, 1,DistanceUnit.INCH, AngleUnit.DEGREES, 1);
+        /*
         PathParser.PointAction pointAction;
         PathParser.LaunchAction launchAction;
         switch (autonomousState) {
@@ -111,6 +113,7 @@ public class BotAuto_ extends OpMode {
                 pointAction = (PathParser.PointAction) action;
                 if (AutoCommon.drive(true,
                         pointAction.x, pointAction.y, pointAction.rx,
+                        pointAction.speed,
                         drivePath.unit, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.GET_NEXT_ACTION;
                 } else autonomousState = AutonomousState.DRIVING_WAIT;
@@ -119,7 +122,8 @@ public class BotAuto_ extends OpMode {
             case DRIVING_WAIT:
                 pointAction = (PathParser.PointAction) action;
                 if (AutoCommon.drive(false,
-                        pointAction.x, pointAction.y, pointAction.rx,
+                        pointAction.x, pointAction.y, pointAction.rx,,
+                        pointAction.speed,
                         drivePath.unit, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.GET_NEXT_ACTION;
                 }
@@ -146,7 +150,7 @@ public class BotAuto_ extends OpMode {
         telemetry.addData("LauncherState", AutoCommon.launchState);
         telemetry.addData("DriveState", AutoCommon.driveState);
         telemetry.addData("Current action ID", action.id);
-        telemetry.update();
+        telemetry.update();*/
     }
 }
 
