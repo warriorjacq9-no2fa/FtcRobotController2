@@ -2,9 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @Autonomous(name = "BotAuto_", group = "Bot")
 public class BotAuto_ extends OpMode {
@@ -25,15 +27,8 @@ public class BotAuto_ extends OpMode {
 
     private AutonomousState autonomousState;
 
-    /*
-     * Here we create an enum not to create a state machine, but to capture which alliance we are on.
-     */
-    private enum Alliance {
-        RED,
-        BLUE
-    }
 
-    private Alliance alliance = Alliance.RED;
+    private AutoCommon.Alliance alliance = AutoCommon.Alliance.RED;
 
     PathParser.DrivePath drivePath;
 
@@ -43,9 +38,6 @@ public class BotAuto_ extends OpMode {
     @Override
     public void init() {
         autonomousState = AutonomousState.GET_NEXT_ACTION;
-
-        AutoCommon.init(hardwareMap, telemetry, drivePath.origin.x, drivePath.origin.y, drivePath.origin.rx,
-                drivePath.unit, AngleUnit.DEGREES);
 
         //intakeM = hardwareMap.get(DcMotor.class, "intake");
 
@@ -63,15 +55,16 @@ public class BotAuto_ extends OpMode {
          * Here we allow the driver to select which alliance we are on using the gamepad.
          */
         if (gamepad1.b) {
-            alliance = Alliance.RED;
+            alliance = AutoCommon.Alliance.RED;
         } else if (gamepad1.x) {
-            alliance = Alliance.BLUE;
+            alliance = AutoCommon.Alliance.BLUE;
         }
 
-        //telemetry.addData("Press X", "for BLUE");
-        //telemetry.addData("Press B", "for RED");
+        telemetry.addData("Press X", "for BLUE");
+        telemetry.addData("Press B", "for RED");
     }
 
+    private ElapsedTime delayTime = new ElapsedTime();
     /*
      * This code runs ONCE when the driver hits START.
      */
@@ -80,7 +73,10 @@ public class BotAuto_ extends OpMode {
         telemetry.addData("Selected Alliance", alliance);
         drivePath = PathParser.parse(hardwareMap.appContext
                 .getResources().getXml(R.xml.drivepath), alliance.name(), telemetry);
-        AutoCommon.drive(false, 0, 0, 0, 1,DistanceUnit.INCH, AngleUnit.DEGREES, 1);
+        telemetry.update();
+        AutoCommon.init(hardwareMap, telemetry, drivePath.origin.x, drivePath.origin.y, drivePath.origin.rx,
+                drivePath.unit, AngleUnit.DEGREES);
+        delayTime.reset();
     }
 
     int actionIndex = 0;
@@ -90,8 +86,7 @@ public class BotAuto_ extends OpMode {
      */
     @Override
     public void loop() {
-        AutoCommon.drive(false, 0, 0, 0, 1,DistanceUnit.INCH, AngleUnit.DEGREES, 1);
-        /*
+        if(delayTime.seconds() < 2) return;
         PathParser.PointAction pointAction;
         PathParser.LaunchAction launchAction;
         switch (autonomousState) {
@@ -122,7 +117,7 @@ public class BotAuto_ extends OpMode {
             case DRIVING_WAIT:
                 pointAction = (PathParser.PointAction) action;
                 if (AutoCommon.drive(false,
-                        pointAction.x, pointAction.y, pointAction.rx,,
+                        pointAction.x, pointAction.y, pointAction.rx,
                         pointAction.speed,
                         drivePath.unit, AngleUnit.DEGREES, 1)) {
                     autonomousState = AutonomousState.GET_NEXT_ACTION;
@@ -150,7 +145,7 @@ public class BotAuto_ extends OpMode {
         telemetry.addData("LauncherState", AutoCommon.launchState);
         telemetry.addData("DriveState", AutoCommon.driveState);
         telemetry.addData("Current action ID", action.id);
-        telemetry.update();*/
+        telemetry.update();
     }
 }
 

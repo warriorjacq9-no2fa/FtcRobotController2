@@ -30,11 +30,11 @@ public class LimelightTest extends LinearOpMode {
             LLResult result = limelight.getLatestResult();
             if (result != null) {
                 if (result.isValid()) {
-                    Pose3D botpose = result.getBotpose();
+                    Pose3D pose = result.getBotpose();
                     telemetry.addData("Result", "yes");
                     telemetry.addData("tx", result.getTx());
                     telemetry.addData("ty", result.getTy());
-                    telemetry.addData("Botpose", botpose.toString());
+                    telemetry.addData("Pose", pose.toString());
                     telemetry.update();
                 }
             } else

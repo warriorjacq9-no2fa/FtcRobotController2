@@ -14,7 +14,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutoCommon {
@@ -53,12 +55,21 @@ public class AutoCommon {
         FINISH
     }
 
+    public enum SmartDriveState {
+        IDLE,
+        INIT,
+        DRIVE,
+        VERIFY,
+        FINISH
+    }
+
     public enum Alliance {
         BLUE,
         RED
     }
 
     // All states are public for telemetry usage
+    public static SmartDriveState sDriveState;
     public static DriveState driveState;
     public static LaunchState launchState;
 
@@ -91,7 +102,7 @@ public class AutoCommon {
 
             imu = hardwareMap.get(IMU.class, "imu");
             limelight = hardwareMap.get(Limelight3A.class, "limelight");
-            limelight.pipelineSwitch(0);
+            if(limelight != null) limelight.pipelineSwitch(0);
 
             conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
             gate.setDirection(Servo.Direction.REVERSE);
@@ -107,6 +118,7 @@ public class AutoCommon {
 
         launchState = LaunchState.IDLE;
         driveState = DriveState.IDLE;
+        sDriveState = SmartDriveState.IDLE;
 
         driveTimer.reset();
         spinTimer.reset();
@@ -116,6 +128,7 @@ public class AutoCommon {
     // Position is in meters, center origin.
     // For DECODE, +X is towards red goal, and +Y is away from goals
     public static Pose3D llPosition() {
+        if(limelight == null) return null;
         YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
         limelight.updateRobotOrientation(orientation.getYaw());
         LLResult result = limelight.getLatestResult();
@@ -128,6 +141,7 @@ public class AutoCommon {
     }
 
     public static double[] llTarget(Alliance alliance) {
+        if(limelight == null) return null;
         limelight.pipelineSwitch(alliance.ordinal() + 1);
         LLResult result = limelight.getLatestResult();
         if(result != null) {
@@ -141,6 +155,7 @@ public class AutoCommon {
         return null;
     }
 
+    private static double dx, dy, drx;
     public static boolean drive
     (
         boolean start,
@@ -149,17 +164,58 @@ public class AutoCommon {
         DistanceUnit dUnit, AngleUnit aUnit,
         double holdSeconds
     ) {
-        double g_dx = x - dUnit.fromMm(currentX);
-        double g_dy = y - dUnit.fromMm(currentY);
+        switch(sDriveState) {
+            case IDLE:
+                if(start) {
+                    sDriveState = SmartDriveState.INIT;
+                }
+                break;
 
-        // Get robot-relative movement
-        double cos = Math.cos(currentRX);
-        double sin = Math.sin(currentRX);
-        
-        double dx = cos * g_dx + sin * g_dy;
-        double dy = -sin * g_dx + cos * g_dy;
+            case INIT:
+                double g_dx = x - dUnit.fromMm(currentX);
+                double g_dy = y - dUnit.fromMm(currentY);
 
-        return drive_rel(start, dx, dy, 0, speed, dUnit, aUnit, holdSeconds);
+                // Get robot-relative movement
+                double cos = Math.cos(currentRX);
+                double sin = Math.sin(currentRX);
+
+                dx = cos * g_dx + sin * g_dy;
+                dy = -sin * g_dx + cos * g_dy;
+                sDriveState = SmartDriveState.DRIVE;
+                break;
+
+            case DRIVE:
+                if(drive_rel(start, dx, dy, 0, speed, dUnit, aUnit, 0)) {
+                    sDriveState = SmartDriveState.VERIFY;
+                }
+                break;
+
+            case VERIFY:
+                Pose3D pose = llPosition();
+                if(pose == null) {
+                    sDriveState = SmartDriveState.FINISH;
+                    break;
+                }
+                Position pos = pose.getPosition();
+                double yaw = pose.getOrientation().getYaw();
+                dx = currentX - Math.round(pos.x);
+                dy = currentY - Math.round(pos.y);
+                drx = currentRX - Math.round(yaw);
+
+                if(dx != 0 || dy != 0 || drx != 0)
+                    sDriveState = SmartDriveState.DRIVE;
+                else
+                    sDriveState = SmartDriveState.FINISH;
+                driveTimer.reset();
+                break;
+
+            case FINISH:
+                if(driveTimer.seconds() > holdSeconds) {
+                    sDriveState = SmartDriveState.IDLE;
+                    return true;
+                }
+        }
+        return false;
     }
 
     public static boolean drive_rel(
