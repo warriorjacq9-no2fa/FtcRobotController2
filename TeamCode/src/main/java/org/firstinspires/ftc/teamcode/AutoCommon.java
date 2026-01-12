@@ -25,6 +25,11 @@ public class AutoCommon {
     static final double TICKS_PER_MM = (ENCODER_TICKS_PER_REV / (WHEEL_DIAMETER_MM * Math.PI));
     static final double TURN_RADIUS_MM = 404;
 
+    static final double TOLERANCE_MM = 10;
+    static final double TOLERANCE_TICKS = TOLERANCE_MM * TICKS_PER_MM;
+
+    static final double TOLERANCE_DEG = 5;
+
     private static DcMotor frontLeft;
     private static DcMotor frontRight;
     private static DcMotor backLeft;
@@ -44,14 +49,17 @@ public class AutoCommon {
         LAUNCHERS,
         GATE_OPEN,
         CONVEYOR,
+        GATE_CLOSE,
         FINISH
     }
 
     public enum DriveState {
         IDLE,
         RESET,
-        INIT,
+        INIT_DRIVE,
         DRIVE,
+        INIT_ROTATE,
+        ROTATE,
         FINISH
     }
 
@@ -155,6 +163,15 @@ public class AutoCommon {
         return null;
     }
 
+    private static boolean isBusy(DcMotor m) {
+        if(m == null) return false;
+        if(m.getMode() != DcMotor.RunMode.RUN_TO_POSITION) return false;
+        if(
+            Math.abs(m.getTargetPosition() - m.getCurrentPosition()) < TOLERANCE_TICKS
+        ) return false;
+        return true;
+    }
+
     private static double dx, dy, drx;
     public static boolean drive
     (
@@ -198,11 +215,11 @@ public class AutoCommon {
                 }
                 Position pos = pose.getPosition();
                 double yaw = pose.getOrientation().getYaw();
-                dx = currentX - Math.round(pos.x);
-                dy = currentY - Math.round(pos.y);
-                drx = currentRX - Math.round(yaw);
+                dx = currentX - (pos.x * 1000.0);
+                dy = currentY - (pos.y * 1000.0);
+                drx = currentRX - yaw;
 
-                if(dx != 0 || dy != 0 || drx != 0)
+                if (Math.abs(dx) > TOLERANCE_MM || Math.abs(dy) > TOLERANCE_MM || Math.abs(drx) > Math.toRadians(TOLERANCE_DEG))
                     sDriveState = SmartDriveState.DRIVE;
                 else
                     sDriveState = SmartDriveState.FINISH;
@@ -241,14 +258,20 @@ public class AutoCommon {
                 frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                driveState = DriveState.INIT;
+
+                frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+                driveState = DriveState.INIT_DRIVE;
                 break;
 
-            case INIT:
-                frontLeft.setTargetPosition((int) (y + x + rx));
-                frontRight.setTargetPosition((int) (y - x - rx));
-                backLeft.setTargetPosition((int) (y - x + rx));
-                backRight.setTargetPosition((int) (y + x - rx));
+            case INIT_DRIVE:
+                frontLeft.setTargetPosition((int) (y + x));
+                frontRight.setTargetPosition((int) (y - x));
+                backLeft.setTargetPosition((int) (y - x));
+                backRight.setTargetPosition((int) (y + x));
 
                 frontLeft.setPower(speed);
                 frontRight.setPower(speed);
@@ -263,18 +286,58 @@ public class AutoCommon {
                 break;
 
             case DRIVE:
-                if (!(frontLeft.isBusy() || frontRight.isBusy() ||
-                        backLeft.isBusy() || backRight.isBusy())) {
+                if (!(isBusy(frontLeft) || isBusy(frontRight) ||
+                        isBusy(backLeft) || isBusy(backRight))) {
                     driveTimer.reset();
+                    frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                    frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+                    if(aUnit.toDegrees(Math.abs(drx)) < TOLERANCE_DEG) {
+                        driveState = DriveState.FINISH;
+                        break;
+                    }
+                    driveState = DriveState.INIT_ROTATE;
+                }
+                break;
+            
+            case INIT_ROTATE:
+                frontLeft.setTargetPosition((int) (-rx));
+                frontRight.setTargetPosition((int) (rx));
+                backLeft.setTargetPosition((int) (-rx));
+                backRight.setTargetPosition((int) (rx));
+
+                frontLeft.setPower(speed);
+                frontRight.setPower(speed);
+                backLeft.setPower(speed);
+                backRight.setPower(speed);
+
+                frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                driveState = DriveState.ROTATE;
+                break;
+            
+            case ROTATE:
+                if (!(isBusy(frontLeft) || isBusy(frontRight) ||
+                        isBusy(backLeft) || isBusy(backRight))) {
                     driveState = DriveState.FINISH;
                 }
                 break;
+                
 
             case FINISH:
                 if(driveTimer.seconds() > holdSeconds) {
-                    currentX += x;
-                    currentY += y;
-                    currentRX += rx;
+                    currentX += dUnit.toMm(dx);
+                    currentY += dUnit.toMm(dy);
+                    currentRX += aUnit.toRadians(drx);
                     driveState = DriveState.IDLE;
                     return true;
                 }
@@ -296,14 +359,15 @@ public class AutoCommon {
                 break;
 
             case LAUNCHERS:
-                launcherRight.setPower(.6);
-                launcherLeft.setPower(.6);
+                launcherRight.setPower(0.6);
+                launcherLeft.setPower(0.6);
                 if(spinTimer.seconds() > 2) launchState = LaunchState.GATE_OPEN;
+                shotTimer.reset();
                 break;
 
             case GATE_OPEN:
-                gate.setPosition(.5);
-                if (gate.getPosition() == (.5)) {
+                gate.setPosition(0.5);
+                if (shotTimer.seconds() > 0.25) {
                     launchState = LaunchState.CONVEYOR;
                     shotTimer.reset();
                 }
@@ -311,11 +375,22 @@ public class AutoCommon {
 
             case CONVEYOR:
                 conveyorRight.setPower(1);
-                if (shotTimer.seconds() > (0.75)) {
+                if (shotTimer.seconds() > 0.75) {
                     shotTimer.reset();
                     shotCount -= 1;
                     if(shotCount <= 0)
                         launchState = LaunchState.FINISH;
+                    else
+                        launchState = LaunchState.GATE_CLOSE;
+                }
+                break;
+            
+            case GATE_CLOSE:
+                conveyorRight.setPower(0);
+                gate.setPosition(0);
+                if(shotTimer.seconds() > 0.25) {
+                    launchState = LaunchState.GATE_OPEN;
+                    shotTimer.reset();
                 }
                 break;
 
@@ -324,11 +399,8 @@ public class AutoCommon {
                 launcherRight.setPower(0);
                 conveyorRight.setPower(0);
                 gate.setPosition(0);
-                if(gate.getPosition() == 0){
-                    launchState = LaunchState.IDLE;
-                    return true;
-                }
-                break;
+                launchState = LaunchState.IDLE;
+                return true;
         }
         return false;
     }
