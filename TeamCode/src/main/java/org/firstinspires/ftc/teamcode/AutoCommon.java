@@ -110,6 +110,9 @@ public class AutoCommon {
             conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
             gate.setDirection(Servo.Direction.REVERSE);
 
+            frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+            frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
             frontLeft.setZeroPowerBehavior(BRAKE);
             frontRight.setZeroPowerBehavior(BRAKE);
             backRight.setZeroPowerBehavior(BRAKE);
