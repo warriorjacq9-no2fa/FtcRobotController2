@@ -220,7 +220,7 @@ public class AutoCommon {
                 drx = currentRX - yaw;
 
                 if (Math.abs(dx) > TOLERANCE_MM || Math.abs(dy) > TOLERANCE_MM || Math.abs(drx) > Math.toRadians(TOLERANCE_DEG))
-                    sDriveState = SmartDriveState.DRIVE;
+                    sDriveState = SmartDriveState.INIT;
                 else
                     sDriveState = SmartDriveState.FINISH;
                 driveTimer.reset();
