@@ -148,29 +148,3 @@ public class BotAuto_ extends OpMode {
         telemetry.update();
     }
 }
-
-//private DigitalChannel digitalTouch;
-//private DistanceSensor sensorColorRange;
-//private Limelight3A limelight;
-
-//private Servo servoTest;
-//    public void limelight() {
-//        LLResult result = limelight.getLatestResult();
-//        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-//        for (LLResultTypes.FiducialResult fiducial : fiducials) {
-//            int id = fiducial.getFiducialId(); // The ID number of the fiducial
-//            double xdegrees = fiducial.getTargetXDegrees(); // Where it is (left-right)
-//            double ydegrees = fiducial.getTargetYDegrees(); // Where it is (up-down)
-//            double distance = fiducial.getTargetPoseCameraSpace().getPosition().z;
-//            telemetry.addData("Fiducial ", id);
-//            telemetry.addData("xdegrees", xdegrees);
-//            telemetry.addData("ydegrees", ydegrees);
-//            telemetry.addData("distance", distance);
-
-
-
-
-
-
-
-
