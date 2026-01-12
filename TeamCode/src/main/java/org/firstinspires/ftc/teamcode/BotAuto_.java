@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 @Autonomous(name = "BotAuto_", group = "Bot")
 public class BotAuto_ extends OpMode {
     // Declare OpMode members.
-    //private DcMotor intakeM;
+    private DcMotor intakeM;
 
     /*
      * Here is our auto state machine enum. This captures each action we'd like to do in auto.
@@ -39,7 +39,7 @@ public class BotAuto_ extends OpMode {
     public void init() {
         autonomousState = AutonomousState.GET_NEXT_ACTION;
 
-        //intakeM = hardwareMap.get(DcMotor.class, "intake");
+        intakeM = hardwareMap.get(DcMotor.class, "intake");
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -77,6 +77,9 @@ public class BotAuto_ extends OpMode {
         AutoCommon.init(hardwareMap, telemetry, drivePath.origin.x, drivePath.origin.y, drivePath.origin.rx,
                 drivePath.unit, AngleUnit.DEGREES);
         delayTime.reset();
+        
+        intakeM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intakeM.setPower(1);
     }
 
     int actionIndex = 0;
