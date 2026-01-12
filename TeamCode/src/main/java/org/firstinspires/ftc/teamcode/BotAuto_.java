@@ -37,6 +37,8 @@ public class BotAuto_ extends OpMode {
      */
     @Override
     public void init() {
+        AutoCommon.init(hardwareMap, telemetry);
+
         autonomousState = AutonomousState.GET_NEXT_ACTION;
 
         intakeM = hardwareMap.get(DcMotor.class, "intake");
@@ -74,7 +76,7 @@ public class BotAuto_ extends OpMode {
         drivePath = PathParser.parse(hardwareMap.appContext
                 .getResources().getXml(R.xml.drivepath), alliance.name(), telemetry);
         telemetry.update();
-        AutoCommon.init(hardwareMap, telemetry, drivePath.origin.x, drivePath.origin.y, drivePath.origin.rx,
+        AutoCommon.start(drivePath.origin.x, drivePath.origin.y, drivePath.origin.rx,
                 drivePath.unit, AngleUnit.DEGREES);
         delayTime.reset();
         

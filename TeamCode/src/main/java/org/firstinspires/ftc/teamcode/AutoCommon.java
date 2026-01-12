@@ -91,12 +91,7 @@ public class AutoCommon {
     private static double currentY = 0;
     private static double currentRX = 0;
 
-    public static void init(HardwareMap hardwareMap, Telemetry telemetry,
-                            double startX, double startY, double startRX,
-                            DistanceUnit du, AngleUnit au) {
-        currentX = du.toMm(startX);
-        currentY = du.toMm(startY);
-        currentRX = au.toRadians(startRX);
+    public static void init(HardwareMap hardwareMap, Telemetry telemetry) {
         try {
             frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
             frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -120,13 +115,22 @@ public class AutoCommon {
             backRight.setZeroPowerBehavior(BRAKE);
             backLeft.setZeroPowerBehavior(BRAKE);
         } catch (IllegalArgumentException e) {
-            telemetry.addData("Error during setup", e.getMessage());
+            telemetry.addData("Error during init", e.getMessage());
             telemetry.speak(e.getMessage());
         }
 
         launchState = LaunchState.IDLE;
         driveState = DriveState.IDLE;
         sDriveState = SmartDriveState.IDLE;
+    }
+
+    public void start (
+            double startX, double startY, double startRX,
+            DistanceUnit du, AngleUnit au
+    ) {
+        currentX = du.toMm(startX);
+        currentY = du.toMm(startY);
+        currentRX = au.toRadians(startRX);
 
         driveTimer.reset();
         spinTimer.reset();
