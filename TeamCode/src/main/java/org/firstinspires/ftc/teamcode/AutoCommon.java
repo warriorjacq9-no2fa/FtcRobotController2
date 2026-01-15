@@ -110,7 +110,6 @@ public class AutoCommon {
             if(limelight != null) limelight.pipelineSwitch(0);
 
             conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
-            gate.setDirection(Servo.Direction.REVERSE);
             frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
             backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -204,8 +203,8 @@ public class AutoCommon {
                 double cos = Math.cos(currentRX);
                 double sin = Math.sin(currentRX);
 
-                dx = cos * g_dx + sin * g_dy;
-                dy = -sin * g_dx + cos * g_dy;
+                dx = -(cos * g_dx + sin * g_dy);
+                dy = -(-sin * g_dx + cos * g_dy);
                 sDriveState = SmartDriveState.DRIVE;
                 break;
 
@@ -376,7 +375,7 @@ public class AutoCommon {
     public static boolean launch(boolean shotRequested, int count) {
         switch (launchState) {
             case IDLE:
-                gate.setPosition(0);
+                gate.setPosition(1);
                 if (shotRequested) {
                     shotCount = count;
                     launchState = LaunchState.LAUNCHERS;
@@ -413,7 +412,7 @@ public class AutoCommon {
             
             case GATE_CLOSE:
                 conveyorRight.setPower(0);
-                gate.setPosition(0);
+                gate.setPosition(1);
                 if(shotTimer.seconds() > 0.25) {
                     launchState = LaunchState.GATE_OPEN;
                     shotTimer.reset();
@@ -424,7 +423,7 @@ public class AutoCommon {
                 launcherLeft.setPower(0);
                 launcherRight.setPower(0);
                 conveyorRight.setPower(0);
-                gate.setPosition(0);
+                gate.setPosition(1);
                 launchState = LaunchState.IDLE;
                 return true;
         }

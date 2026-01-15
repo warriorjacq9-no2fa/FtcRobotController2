@@ -82,7 +82,7 @@ public class BotAuto_ extends OpMode {
         delayTime.reset();
         
         intakeM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        intakeM.setPower(0.5);
+        intakeM.setPower(1);
     }
 
     int actionIndex = 0;
