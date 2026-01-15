@@ -144,6 +144,8 @@ public class MainBotTeleOp extends LinearOpMode {
         conveyorRight.setPower(0);
         //launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);
         conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();

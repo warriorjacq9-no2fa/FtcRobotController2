@@ -68,7 +68,7 @@ public class AutoCommon {
         INIT,
         DRIVE,
         VERIFY,
-        FINISH
+        DRIVE_WAIT, FINISH
     }
 
     public enum Alliance {
@@ -90,8 +90,10 @@ public class AutoCommon {
     private static double currentX = 0;
     private static double currentY = 0;
     private static double currentRX = 0;
+    private static Telemetry telemetry;
 
     public static void init(HardwareMap hardwareMap, Telemetry telemetry) {
+        AutoCommon.telemetry = telemetry;
         try {
             frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
             frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -109,9 +111,8 @@ public class AutoCommon {
 
             conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
             gate.setDirection(Servo.Direction.REVERSE);
-
             frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+            backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
             frontLeft.setZeroPowerBehavior(BRAKE);
             frontRight.setZeroPowerBehavior(BRAKE);
@@ -127,7 +128,7 @@ public class AutoCommon {
         sDriveState = SmartDriveState.IDLE;
     }
 
-    public void start (
+    public static void start(
             double startX, double startY, double startRX,
             DistanceUnit du, AngleUnit au
     ) {
@@ -209,7 +210,13 @@ public class AutoCommon {
                 break;
 
             case DRIVE:
-                if(drive_rel(start, dx, dy, 0, speed, dUnit, aUnit, 0)) {
+                if(drive_rel(true, dx, dy, 0, speed, dUnit, aUnit, 0)) {
+                    sDriveState = SmartDriveState.VERIFY;
+                }
+                break;
+
+            case DRIVE_WAIT:
+                if(drive_rel(false, dx, dy, 0, speed, dUnit, aUnit, 0)) {
                     sDriveState = SmartDriveState.VERIFY;
                 }
                 break;
@@ -270,6 +277,8 @@ public class AutoCommon {
                 frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+                backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
                 driveState = DriveState.INIT_DRIVE;
                 break;
@@ -289,6 +298,8 @@ public class AutoCommon {
                 frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+                backRight.setDirection(DcMotorSimple.Direction.REVERSE);
                 driveState = DriveState.DRIVE;
                 break;
 
@@ -300,11 +311,17 @@ public class AutoCommon {
                     frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    frontLeft.setPower(0);
+                    frontRight.setPower(0);
+                    backLeft.setPower(0);
+                    backRight.setPower(0);
 
                     frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+                    backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
                     if(aUnit.toDegrees(Math.abs(drx)) < TOLERANCE_DEG) {
                         driveState = DriveState.FINISH;
@@ -329,6 +346,8 @@ public class AutoCommon {
                 frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+                backRight.setDirection(DcMotorSimple.Direction.REVERSE);
                 driveState = DriveState.ROTATE;
                 break;
             

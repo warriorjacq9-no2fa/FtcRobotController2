@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -81,7 +82,7 @@ public class BotAuto_ extends OpMode {
         delayTime.reset();
         
         intakeM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        intakeM.setPower(1);
+        intakeM.setPower(0.5);
     }
 
     int actionIndex = 0;
