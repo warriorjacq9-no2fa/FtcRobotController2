@@ -6,7 +6,7 @@
 <drivepath>
     <path alliance="RED" unit="inches">
         <origin
-            x="55" y="59" rx="-45"
+            x="55" y="59" rx="135"
         />
         <point id="1" speed="1"
             x="0" y="0" rx="0"
