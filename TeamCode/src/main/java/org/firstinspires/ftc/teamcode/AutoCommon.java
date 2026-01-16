@@ -20,10 +20,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutoCommon {
-    static final double WHEEL_DIAMETER_MM = 96;
-    static final double ENCODER_TICKS_PER_REV = 537.7;
+    static final double WHEEL_DIAMETER_MM = 104;
+    static final double ENCODER_TICKS_PER_REV = 751.8;
     static final double TICKS_PER_MM = (ENCODER_TICKS_PER_REV / (WHEEL_DIAMETER_MM * Math.PI));
-    static final double TURN_RADIUS_MM = 404;
+    static final double TURN_RADIUS_MM = 282.5;
 
     static final double TOLERANCE_MM = 10;
     static final double TOLERANCE_TICKS = TOLERANCE_MM * TICKS_PER_MM;
