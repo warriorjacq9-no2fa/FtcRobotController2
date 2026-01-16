@@ -20,10 +20,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutoCommon {
-    static final double WHEEL_DIAMETER_MM = 96;
-    static final double ENCODER_TICKS_PER_REV = 537.7;
+    static final double WHEEL_DIAMETER_MM = 104;
+    static final double ENCODER_TICKS_PER_REV = 751.8;
     static final double TICKS_PER_MM = (ENCODER_TICKS_PER_REV / (WHEEL_DIAMETER_MM * Math.PI));
-    static final double TURN_RADIUS_MM = 404;
+    static final double TURN_RADIUS_MM = 282.5;
 
     static final double TOLERANCE_MM = 10;
     static final double TOLERANCE_TICKS = TOLERANCE_MM * TICKS_PER_MM;
@@ -68,7 +68,8 @@ public class AutoCommon {
         INIT,
         DRIVE,
         VERIFY,
-        DRIVE_WAIT, FINISH
+        DRIVE_WAIT,
+        FINISH
     }
 
     public enum Alliance {
@@ -173,10 +174,7 @@ public class AutoCommon {
     private static boolean isBusy(DcMotor m) {
         if(m == null) return false;
         if(m.getMode() != DcMotor.RunMode.RUN_TO_POSITION) return false;
-        if(
-            Math.abs(m.getTargetPosition() - m.getCurrentPosition()) < TOLERANCE_TICKS
-        ) return false;
-        return true;
+        return Math.abs(m.getTargetPosition() - m.getCurrentPosition()) >= TOLERANCE_TICKS;
     }
 
     private static double dx, dy, drx;
@@ -221,6 +219,8 @@ public class AutoCommon {
                 break;
 
             case VERIFY:
+                currentX = dUnit.toMm(x);
+                currentY = dUnit.toMm(y);
                 Pose3D pose = llPosition();
                 if(pose == null) {
                     sDriveState = SmartDriveState.FINISH;
@@ -257,7 +257,7 @@ public class AutoCommon {
     ) {
         double x = (dUnit.toMm(dx)) * TICKS_PER_MM;
         double y = (dUnit.toMm(dy)) * TICKS_PER_MM;
-        double rx = ((aUnit.toRadians(drx)) * TURN_RADIUS_MM) * TICKS_PER_MM;
+        double rx = (((aUnit.toRadians(drx)) * TURN_RADIUS_MM) / (Math.PI * WHEEL_DIAMETER_MM)) * TICKS_PER_MM;
 
         switch(driveState) {
             case IDLE:
@@ -360,8 +360,6 @@ public class AutoCommon {
 
             case FINISH:
                 if(driveTimer.seconds() > holdSeconds) {
-                    currentX += dUnit.toMm(dx);
-                    currentY += dUnit.toMm(dy);
                     currentRX += aUnit.toRadians(drx);
                     driveState = DriveState.IDLE;
                     return true;
