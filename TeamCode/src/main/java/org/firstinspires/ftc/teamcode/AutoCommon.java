@@ -258,7 +258,7 @@ public class AutoCommon {
     ) {
         double x = (dUnit.toMm(dx)) * TICKS_PER_MM;
         double y = (dUnit.toMm(dy)) * TICKS_PER_MM;
-        double rx = ((aUnit.toRadians(drx)) * TURN_RADIUS_MM) * TICKS_PER_MM;
+        double rx = (((aUnit.toRadians(drx)) * TURN_RADIUS_MM) / (Math.PI * WHEEL_DIAMETER_MM)) * TICKS_PER_MM;
 
         switch(driveState) {
             case IDLE:
