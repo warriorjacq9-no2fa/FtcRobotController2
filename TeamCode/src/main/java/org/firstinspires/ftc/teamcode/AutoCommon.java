@@ -68,7 +68,8 @@ public class AutoCommon {
         INIT,
         DRIVE,
         VERIFY,
-        DRIVE_WAIT, FINISH
+        DRIVE_WAIT,
+        FINISH
     }
 
     public enum Alliance {
@@ -174,10 +175,7 @@ public class AutoCommon {
     private static boolean isBusy(DcMotor m) {
         if(m == null) return false;
         if(m.getMode() != DcMotor.RunMode.RUN_TO_POSITION) return false;
-        if(
-            Math.abs(m.getTargetPosition() - m.getCurrentPosition()) < TOLERANCE_TICKS
-        ) return false;
-        return true;
+        return Math.abs(m.getTargetPosition() - m.getCurrentPosition()) >= TOLERANCE_TICKS;
     }
 
     private static double dx, dy, drx;
@@ -222,6 +220,8 @@ public class AutoCommon {
                 break;
 
             case VERIFY:
+                currentX = dUnit.toMm(x);
+                currentY = dUnit.toMm(y);
                 Pose3D pose = llPosition();
                 if(pose == null) {
                     sDriveState = SmartDriveState.FINISH;
@@ -361,8 +361,6 @@ public class AutoCommon {
 
             case FINISH:
                 if(driveTimer.seconds() > holdSeconds) {
-                    currentX += dUnit.toMm(dx);
-                    currentY += dUnit.toMm(dy);
                     currentRX += aUnit.toRadians(drx);
                     driveState = DriveState.IDLE;
                     return true;
