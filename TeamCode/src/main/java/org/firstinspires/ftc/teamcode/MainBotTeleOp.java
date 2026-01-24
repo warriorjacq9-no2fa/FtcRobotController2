@@ -22,10 +22,11 @@ public class MainBotTeleOp extends LinearOpMode {
     private DcMotor frontRight;
     private DcMotor backLeft;
     private DcMotor backRight;
-    private DcMotor launcherLeft;
     private DcMotor launcherRight;
     private DcMotor intakeM;
     private DcMotor conveyorRight;
+    private DcMotor lift;
+
     private Servo gate;
     private Servo pushdown1;
     private Servo pushdown2;
@@ -55,14 +56,12 @@ public class MainBotTeleOp extends LinearOpMode {
     public void launcher() {
         //launcherLeft.setPower(
         if(gamepad2.y) {
-            launcherLeft.setPower(.69);
             launcherRight.setPower(.69);
         }
         else {
-            launcherLeft.setPower(.6);
             launcherRight.setPower(.6);
         }
-        telemetry.addData("Luancher", launcherLeft.getPower());
+        telemetry.addData("Launcher", launcherRight.getPower());
     }
 
     public void intake() {
@@ -108,15 +107,23 @@ public class MainBotTeleOp extends LinearOpMode {
         x = gamepad1.left_stick_x;
         rx = gamepad1.right_stick_x;
 
-        frontLeft.setPower(x + y + rx);
-        frontRight.setPower(y - x - rx);
-        backLeft.setPower(y - x + rx);
-        backRight.setPower(y + x - rx);
+        frontLeft.setPower(y + x - rx);
+        frontRight.setPower(y - x + rx);
+        backLeft.setPower(y - x - rx);
+        backRight.setPower(y +  x + rx);
         telemetry.addData("x", x);
         telemetry.addData("y", y);
         telemetry.addData("rx", rx);
         telemetry.addData("Motor Power", frontLeft.getPower());
         telemetry.addData("Status", "Running");
+    }
+
+    public void lifts() {
+        if(gamepad1.left_bumper) {
+            lift.setPower(1);
+        } else {
+            lift.setPower(0);
+        }
     }
 
 
@@ -133,13 +140,13 @@ public class MainBotTeleOp extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
         conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
-        launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
         gate = hardwareMap.get(Servo.class, "gate");
         pushdown1 = hardwareMap.get(Servo.class, "pushdown1");
         pushdown2 = hardwareMap.get(Servo.class, "pushdown2");
         pushdown3 = hardwareMap.get(Servo.class, "pushdown3");
         pushdown4 = hardwareMap.get(Servo.class, "pushdown4");
+        lift = hardwareMap.get(DcMotor.class, "lift");
 
         conveyorRight.setPower(0);
         //launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -159,8 +166,7 @@ public class MainBotTeleOp extends LinearOpMode {
             gate();
             conveyor();
             launcher();
-
-
+            lifts();
         }
         telemetry.update();
     }

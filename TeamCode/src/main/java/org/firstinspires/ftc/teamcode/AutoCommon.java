@@ -35,7 +35,6 @@ public class AutoCommon {
     private static DcMotor backLeft;
     private static DcMotor backRight;
 
-    private static DcMotor launcherLeft;
     private static DcMotor launcherRight;
     private static DcMotor conveyorRight;
     private static Servo gate;
@@ -102,7 +101,6 @@ public class AutoCommon {
             backRight = hardwareMap.get(DcMotor.class, "backRight");
 
             conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
-            launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
             launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
             gate = hardwareMap.get(Servo.class, "gate");
 
@@ -383,7 +381,6 @@ public class AutoCommon {
 
             case LAUNCHERS:
                 launcherRight.setPower(0.6);
-                launcherLeft.setPower(0.6);
                 if(spinTimer.seconds() > 2) launchState = LaunchState.GATE_OPEN;
                 shotTimer.reset();
                 break;
@@ -418,7 +415,6 @@ public class AutoCommon {
                 break;
 
             case FINISH:
-                launcherLeft.setPower(0);
                 launcherRight.setPower(0);
                 conveyorRight.setPower(0);
                 gate.setPosition(1);
