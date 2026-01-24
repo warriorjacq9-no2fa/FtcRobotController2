@@ -380,7 +380,7 @@ public class AutoCommon {
                 break;
 
             case LAUNCHERS:
-                launcherRight.setPower(0.6);
+                launcherRight.setPower(1);
                 if(spinTimer.seconds() > 2) launchState = LaunchState.GATE_OPEN;
                 shotTimer.reset();
                 break;

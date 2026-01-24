@@ -54,19 +54,23 @@ public class MainBotTeleOp extends LinearOpMode {
     }
 
     public void launcher() {
-        //launcherLeft.setPower(
-        if(gamepad2.y) {
-            launcherRight.setPower(.69);
-        }
-        else {
-            launcherRight.setPower(.6);
+        if(gamepad2.left_stick_y < -0.25) {
+            launcherRight.setPower(1);
+        } else if(gamepad2.left_stick_x < -0.25) {
+            launcherRight.setPower(0.85);
+        } else {
+            launcherRight.setPower(0);
         }
         telemetry.addData("Launcher", launcherRight.getPower());
     }
 
     public void intake() {
-        intakeM.setPower(1);
-        telemetry.addData("Intake Power", intakeM.getPower());
+        if(gamepad1.a) {
+            intakeM.setPower(1);
+            telemetry.addData("Intake Power", intakeM.getPower());
+        } else if(gamepad1.b) {
+            intakeM.setPower(0);
+        }
     }
     public void gate() {
         if(gamepad2.right_bumper) {
@@ -153,6 +157,11 @@ public class MainBotTeleOp extends LinearOpMode {
         conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
