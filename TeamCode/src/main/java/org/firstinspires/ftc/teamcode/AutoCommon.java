@@ -27,8 +27,9 @@ public class AutoCommon {
 
     static final double TOLERANCE_MM = 10;
     static final double TOLERANCE_TICKS = TOLERANCE_MM * TICKS_PER_MM;
-
     static final double TOLERANCE_DEG = 5;
+
+    static final double LL_SAMPLE_SIZE = 5;
 
     private static DcMotor frontLeft;
     private static DcMotor frontRight;
@@ -42,6 +43,21 @@ public class AutoCommon {
     private static IMU imu;
     private static Limelight3A limelight;
 
+    public static class Pos3d {
+        public double x, y, a;
+
+        public Pos3d() {
+            x = 0;
+            y = 0;
+            a = 0;
+        }
+
+        public Pos3d(double x, double y, double a) {
+            this.x = x;
+            this.y = y;
+            this.a = a;
+        }
+    }
 
     public enum LaunchState {
         IDLE,
@@ -64,10 +80,8 @@ public class AutoCommon {
 
     public enum SmartDriveState {
         IDLE,
-        INIT,
+        LIMELIGHT,
         DRIVE,
-        VERIFY,
-        DRIVE_WAIT,
         FINISH
     }
 
@@ -94,32 +108,27 @@ public class AutoCommon {
 
     public static void init(HardwareMap hardwareMap, Telemetry telemetry) {
         AutoCommon.telemetry = telemetry;
-        try {
-            frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-            frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-            backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-            backRight = hardwareMap.get(DcMotor.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
 
-            conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
-            launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
-            gate = hardwareMap.get(Servo.class, "gate");
+        conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
+        launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
+        gate = hardwareMap.get(Servo.class, "gate");
 
-            imu = hardwareMap.get(IMU.class, "imu");
-            limelight = hardwareMap.get(Limelight3A.class, "limelight");
-            if(limelight != null) limelight.pipelineSwitch(0);
+        imu = hardwareMap.get(IMU.class, "imu");
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(0);
 
-            conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
-            frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-            frontLeft.setZeroPowerBehavior(BRAKE);
-            frontRight.setZeroPowerBehavior(BRAKE);
-            backRight.setZeroPowerBehavior(BRAKE);
-            backLeft.setZeroPowerBehavior(BRAKE);
-        } catch (IllegalArgumentException e) {
-            telemetry.addData("Error during init", e.getMessage());
-            telemetry.speak(e.getMessage());
-        }
+        frontLeft.setZeroPowerBehavior(BRAKE);
+        frontRight.setZeroPowerBehavior(BRAKE);
+        backLeft.setZeroPowerBehavior(BRAKE);
+        backRight.setZeroPowerBehavior(BRAKE);
 
         launchState = LaunchState.IDLE;
         driveState = DriveState.IDLE;
@@ -139,22 +148,33 @@ public class AutoCommon {
         shotTimer.reset();
     }
 
-    // Position is in meters, center origin.
+    // Position is in MM, center origin.
     // For DECODE, +X is towards red goal, and +Y is away from goals
-    public static Pose3D llPosition() {
+    public static Pos3d llPosition() {
         if(limelight == null) return null;
         YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
         limelight.updateRobotOrientation(orientation.getYaw());
-        LLResult result = limelight.getLatestResult();
-        if (result != null) {
-            if (result.isValid()) {
-                return result.getBotpose_MT2();
+        Pos3d res = new Pos3d();
+        int j = 0;
+        for(int i = 0; i < LL_SAMPLE_SIZE; i++) {
+            LLResult result = limelight.getLatestResult();
+            if (result != null) {
+                if (result.isValid()) {
+                    Pose3D pose = result.getBotpose_MT2();
+                    res.x += pose.position.unit.toMm(pose.position.x);
+                    res.y += pose.position.unit.toMm(pose.position.y);
+                    res.a += pose.orientation.yaw;
+                    j++;
+                }
             }
         }
-        return null;
+        res.x /= j;
+        res.y /= j;
+        res.a /= j;
+        return res;
     }
 
-    public static double[] llTarget(Alliance alliance) {
+    public static Pos3d llTarget(Alliance alliance) {
         if(limelight == null) return null;
         limelight.pipelineSwitch(alliance.ordinal() + 1);
         LLResult result = limelight.getLatestResult();
@@ -163,19 +183,14 @@ public class AutoCommon {
                 double tx = result.getTx();
                 double ty = result.getTy();
                 double ta = result.getTa();
-                return new double[] {tx, ty, ta};
+                return new Pos3d(tx, ty, ta);
             }
         }
         return null;
     }
 
-    private static boolean isBusy(DcMotor m) {
-        if(m == null) return false;
-        if(m.getMode() != DcMotor.RunMode.RUN_TO_POSITION) return false;
-        return Math.abs(m.getTargetPosition() - m.getCurrentPosition()) >= TOLERANCE_TICKS;
-    }
 
-    private static double dx, dy, drx;
+    private static double fl, fr, bl, br;
     public static boolean drive
     (
         boolean start,
@@ -187,61 +202,62 @@ public class AutoCommon {
         switch(sDriveState) {
             case IDLE:
                 if(start) {
-                    sDriveState = SmartDriveState.INIT;
+                    sDriveState = SmartDriveState.LIMELIGHT;
                 }
                 break;
+            case LIMELIGHT:
+                Pos3d pose = llPosition();
+                if(pose != null) {
+                    double g_dx = dUnit.toMm(x) - Math.round(pose.x);
+                    double g_dy = dUnit.toMm(y) - Math.round(pose.y);
+                    double g_rx = pose.a * (Math.PI / 180); // Convert to radians
 
-            case INIT:
-                double g_dx = x - dUnit.fromMm(currentX);
-                double g_dy = y - dUnit.fromMm(currentY);
+                    // Get robot-relative movement
+                    double cos = Math.cos(g_rx);
+                    double sin = Math.sin(g_rx);
 
-                // Get robot-relative movement
-                double cos = Math.cos(currentRX);
-                double sin = Math.sin(currentRX);
+                    double dx = cos * g_dx + sin * g_dy;
+                    double dy = -sin * g_dx + cos * g_dy;
+                    double drx = aUnit.toDegrees(rx) - pose.a;
 
-                dx = -(cos * g_dx + sin * g_dy);
-                dy = -(-sin * g_dx + cos * g_dy);
-                sDriveState = SmartDriveState.DRIVE;
+                    if(Math.abs(dx) < TOLERANCE_MM && Math.abs(dy) < TOLERANCE_MM && Math.abs(drx) < TOLERANCE_DEG) {
+                        driveTimer.reset();
+                        sDriveState = SmartDriveState.FINISH;
+                        break;
+                    }
+
+                    // Clamp to [-1, 1] for motor power values
+                    dx = Math.max(-1, Math.min(1, dx));
+                    dy = Math.max(-1, Math.min(1, dy));
+                    drx = Math.max(-1, Math.min(1, drx));
+
+                    fl = (dy + dx - drx);
+                    fr = (dy - dx + drx);
+                    bl = (dy - dx - drx);
+                    br = (dy + dx + drx);
+
+                    frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    sDriveState = SmartDriveState.DRIVE;
+                }
                 break;
-
+            
             case DRIVE:
-                if(drive_rel(true, dx, dy, 0, speed, dUnit, aUnit, 0)) {
-                    sDriveState = SmartDriveState.VERIFY;
-                }
+                frontLeft.setPower(fl);
+                frontRight.setPower(fr);
+                backLeft.setPower(bl);
+                backRight.setPower(br);
+                sDriveState = SmartDriveState.LIMELIGHT;
                 break;
-
-            case DRIVE_WAIT:
-                if(drive_rel(false, dx, dy, 0, speed, dUnit, aUnit, 0)) {
-                    sDriveState = SmartDriveState.VERIFY;
-                }
-                break;
-
-            case VERIFY:
-                currentX = dUnit.toMm(x);
-                currentY = dUnit.toMm(y);
-                Pose3D pose = llPosition();
-                if(pose == null) {
-                    sDriveState = SmartDriveState.FINISH;
-                    break;
-                }
-                Position pos = pose.getPosition();
-                double yaw = pose.getOrientation().getYaw();
-                dx = currentX - (pos.x * 1000.0);
-                dy = currentY - (pos.y * 1000.0);
-                drx = currentRX - yaw;
-
-                if (Math.abs(dx) > TOLERANCE_MM || Math.abs(dy) > TOLERANCE_MM || Math.abs(drx) > Math.toRadians(TOLERANCE_DEG))
-                    sDriveState = SmartDriveState.INIT;
-                else
-                    sDriveState = SmartDriveState.FINISH;
-                driveTimer.reset();
-                break;
-
+            
             case FINISH:
                 if(driveTimer.seconds() > holdSeconds) {
                     sDriveState = SmartDriveState.IDLE;
                     return true;
                 }
+                break;
         }
         return false;
     }

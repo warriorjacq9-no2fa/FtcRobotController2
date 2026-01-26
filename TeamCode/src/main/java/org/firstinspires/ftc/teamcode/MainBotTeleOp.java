@@ -54,23 +54,18 @@ public class MainBotTeleOp extends LinearOpMode {
     }
 
     public void launcher() {
-        if(gamepad2.left_stick_y < -0.25) {
-            launcherRight.setPower(1);
-        } else if(gamepad2.left_stick_x < -0.25) {
-            launcherRight.setPower(0.85);
-        } else {
-            launcherRight.setPower(0);
-        }
+        double power = (Math.log(gamepad2.left_stick_y) / Math.PI) + 1;
+        launcherRight.setPower(power);
         telemetry.addData("Launcher", launcherRight.getPower());
     }
 
     public void intake() {
         if(gamepad1.a) {
             intakeM.setPower(1);
-            telemetry.addData("Intake Power", intakeM.getPower());
         } else if(gamepad1.b) {
             intakeM.setPower(0);
         }
+        telemetry.addData("Intake Power", intakeM.getPower());
     }
     public void gate() {
         if(gamepad2.right_bumper) {
@@ -114,7 +109,7 @@ public class MainBotTeleOp extends LinearOpMode {
         frontLeft.setPower(y + x - rx);
         frontRight.setPower(y - x + rx);
         backLeft.setPower(y - x - rx);
-        backRight.setPower(y +  x + rx);
+        backRight.setPower(y + x + rx);
         telemetry.addData("x", x);
         telemetry.addData("y", y);
         telemetry.addData("rx", rx);
