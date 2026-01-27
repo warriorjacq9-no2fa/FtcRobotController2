@@ -210,31 +210,43 @@ public class AutoCommon {
                 if(pose != null) {
                     double g_dx = dUnit.toMm(x) - Math.round(pose.x);
                     double g_dy = dUnit.toMm(y) - Math.round(pose.y);
-                    double g_rx = pose.a * (Math.PI / 180); // Convert to radians
+                    double g_drx = pose.a * (Math.PI / 180); // Convert to radians
+
+                    double distance = Math.hypot(g_dx, g_dy);
+
+                    double f_vx = 0.0;
+                    double f_vy = 0.0;
+
+                    if (distance > TOLERANCE_MM) {
+                        f_vx = (g_dx / distance) * speed;
+                        f_vy = (g_dy / distance) * speed;
+                    }
 
                     // Get robot-relative movement
                     double cos = Math.cos(g_rx);
                     double sin = Math.sin(g_rx);
 
-                    double dx = cos * g_dx + sin * g_dy;
-                    double dy = -sin * g_dx + cos * g_dy;
-                    double drx = aUnit.toDegrees(rx) - pose.a;
+                    double vx = f_vx * cos + f_vy * sin;
+                    double vy = -f_vx * sin + f_vy * cos;
 
-                    if(Math.abs(dx) < TOLERANCE_MM && Math.abs(dy) < TOLERANCE_MM && Math.abs(drx) < TOLERANCE_DEG) {
-                        driveTimer.reset();
-                        sDriveState = SmartDriveState.FINISH;
-                        break;
+                    double omega = rx - pose.a;
+
+                    fl = vx + vy + omega;
+                    fr = vx - vy - omega;
+                    bl = vx - vy + omega;
+                    br = vx + vy - omega;
+
+                    double max = Math.max(
+                            Math.max(Math.abs(fl), Math.abs(fr)),
+                            Math.max(Math.abs(bl), Math.abs(br))
+                    );
+
+                    if (max > 1.0) {
+                        fl /= max;
+                        fr /= max;
+                        bl /= max;
+                        br /= max;
                     }
-
-                    // Clamp to [-1, 1] for motor power values
-                    dx = Math.max(-1, Math.min(1, dx));
-                    dy = Math.max(-1, Math.min(1, dy));
-                    drx = Math.max(-1, Math.min(1, drx));
-
-                    fl = (dy + dx - drx);
-                    fr = (dy - dx + drx);
-                    bl = (dy - dx - drx);
-                    br = (dy + dx + drx);
 
                     frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -253,6 +265,10 @@ public class AutoCommon {
                 break;
             
             case FINISH:
+                frontRight.setPower(0);
+                frontLeft.setPower(0);
+                backRight.setPower(0);
+                backLeft.setPower(0);
                 if(driveTimer.seconds() > holdSeconds) {
                     sDriveState = SmartDriveState.IDLE;
                     return true;
