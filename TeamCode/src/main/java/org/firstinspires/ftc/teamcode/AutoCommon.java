@@ -14,9 +14,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutoCommon {
@@ -101,9 +99,6 @@ public class AutoCommon {
 
     private static final ElapsedTime driveTimer = new ElapsedTime();
 
-    private static double currentX = 0;
-    private static double currentY = 0;
-    private static double currentRX = 0;
     private static Telemetry telemetry;
 
     public static void init(HardwareMap hardwareMap, Telemetry telemetry) {
@@ -135,14 +130,7 @@ public class AutoCommon {
         sDriveState = SmartDriveState.IDLE;
     }
 
-    public static void start(
-            double startX, double startY, double startRX,
-            DistanceUnit du, AngleUnit au
-    ) {
-        currentX = du.toMm(startX);
-        currentY = du.toMm(startY);
-        currentRX = au.toRadians(startRX);
-
+    public static void start() {
         driveTimer.reset();
         spinTimer.reset();
         shotTimer.reset();
@@ -229,7 +217,7 @@ public class AutoCommon {
                     double vx = f_vx * cos + f_vy * sin;
                     double vy = -f_vx * sin + f_vy * cos;
 
-                    double omega = rx - pose.a;
+                    double omega = aUnit.toRadians(rx) - (pose.a * (Math.PI / 180));
 
                     fl = vx + vy + omega;
                     fr = vx - vy - omega;
@@ -284,12 +272,13 @@ public class AutoCommon {
         return Math.abs(m.getTargetPosition() - m.getCurrentPosition()) >= TOLERANCE_TICKS;
     }
 
-    public static boolean drive_rel(
-            boolean start,
-            double dx, double dy, double drx,
-            double speed,
-            DistanceUnit dUnit, AngleUnit aUnit,
-            double holdSeconds
+    public static boolean drive_rel
+    (
+        boolean start,
+        double dx, double dy, double drx,
+        double speed,
+        DistanceUnit dUnit, AngleUnit aUnit,
+        double holdSeconds
     ) {
         double x = (dUnit.toMm(dx)) * TICKS_PER_MM;
         double y = (dUnit.toMm(dy)) * TICKS_PER_MM;
@@ -396,7 +385,6 @@ public class AutoCommon {
 
             case FINISH:
                 if(driveTimer.seconds() > holdSeconds) {
-                    currentRX += aUnit.toRadians(drx);
                     driveState = DriveState.IDLE;
                     return true;
                 }
