@@ -161,9 +161,9 @@ public class AutoCommon {
             if (result != null) {
                 if (result.isValid()) {
                     Pose3D pose = result.getBotpose_MT2();
-                    res.x += pose.position.unit.toMm(pose.position.x);
-                    res.y += pose.position.unit.toMm(pose.position.y);
-                    res.a += pose.orientation.yaw;
+                    res.x += pose.getPosition().unit.toMm(pose.getPosition().x);
+                    res.y += pose.getPosition().unit.toMm(pose.getPosition().y);
+                    res.a += pose.getOrientation().getYaw();
                     j++;
                 }
             }
@@ -223,8 +223,8 @@ public class AutoCommon {
                     }
 
                     // Get robot-relative movement
-                    double cos = Math.cos(g_rx);
-                    double sin = Math.sin(g_rx);
+                    double cos = Math.cos(g_drx);
+                    double sin = Math.sin(g_drx);
 
                     double vx = f_vx * cos + f_vy * sin;
                     double vy = -f_vx * sin + f_vy * cos;
@@ -276,6 +276,12 @@ public class AutoCommon {
                 break;
         }
         return false;
+    }
+
+    private static boolean isBusy(DcMotor m) {
+        if(m == null) return false;
+        if(m.getMode() != DcMotor.RunMode.RUN_TO_POSITION) return false;
+        return Math.abs(m.getTargetPosition() - m.getCurrentPosition()) >= TOLERANCE_TICKS;
     }
 
     public static boolean drive_rel(
