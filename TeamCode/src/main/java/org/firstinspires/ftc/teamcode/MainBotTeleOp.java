@@ -55,20 +55,18 @@ public class MainBotTeleOp extends LinearOpMode {
     public void launcher() {
         //launcherLeft.setPower(
         if(gamepad2.y) {
+            launcherLeft.setPower(.69);
             launcherRight.setPower(.69);
         }
         else {
+            launcherLeft.setPower(.6);
             launcherRight.setPower(.6);
         }
         telemetry.addData("Luancher", launcherLeft.getPower());
     }
+
     public void intake() {
-        if (gamepad2.b) {
-            intakeM.setPower(-1);
-        }
-        else {
-            intakeM.setPower(1);
-        }
+        intakeM.setPower(1);
         telemetry.addData("Intake Power", intakeM.getPower());
     }
     public void gate() {
@@ -148,10 +146,6 @@ public class MainBotTeleOp extends LinearOpMode {
         conveyorRight.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();

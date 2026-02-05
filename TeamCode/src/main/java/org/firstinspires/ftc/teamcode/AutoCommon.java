@@ -208,14 +208,13 @@ public class AutoCommon {
 
             case DRIVE:
                 if(drive_rel(true, dx, dy, 0, speed, dUnit, aUnit, 0)) {
-                    sDriveState = SmartDriveState.FINISH;
+                    sDriveState = SmartDriveState.VERIFY;
                 }
-                //skip verify state because no limelight
                 break;
 
             case DRIVE_WAIT:
                 if(drive_rel(false, dx, dy, 0, speed, dUnit, aUnit, 0)) {
-                    sDriveState = SmartDriveState.FINISH;
+                    sDriveState = SmartDriveState.VERIFY;
                 }
                 break;
 
