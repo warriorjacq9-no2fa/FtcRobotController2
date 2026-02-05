@@ -6,6 +6,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -24,7 +25,8 @@ public class MainBotTeleOp extends LinearOpMode {
     private DcMotor backRight;
     private DcMotor launcherRight;
     private DcMotor intakeM;
-    private DcMotor conveyorRight;
+    private CRServo conveyorRight;
+    private CRServo conveyorLeft;
     private DcMotor lift;
 
     private Servo gate;
@@ -87,8 +89,10 @@ public class MainBotTeleOp extends LinearOpMode {
     public void conveyor() {
         if (gamepad2.left_bumper) {
             conveyorRight.setPower(1);
+            conveyorLeft.setPower(1);
         } else {
             conveyorRight.setPower(0);
+            conveyorLeft.setPower(0);
         }
         telemetry.addData("conveyor", conveyorRight.getPower());
 
@@ -138,7 +142,8 @@ public class MainBotTeleOp extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-        conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
+        conveyorRight = hardwareMap.get(CRServo.class, "conveyorRight");
+        conveyorLeft = hardwareMap.get(CRServo.class, "conveyorLeft");
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
         gate = hardwareMap.get(Servo.class, "gate");
         pushdown1 = hardwareMap.get(Servo.class, "pushdown1");
