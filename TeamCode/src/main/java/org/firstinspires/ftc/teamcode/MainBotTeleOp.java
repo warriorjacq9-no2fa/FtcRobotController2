@@ -24,6 +24,7 @@ public class MainBotTeleOp extends LinearOpMode {
     private DcMotor backLeft;
     private DcMotor backRight;
     private DcMotor launcherRight;
+    private DcMotor launcherLeft;
     private DcMotor intakeM;
     private CRServo conveyorRight;
     private CRServo conveyorLeft;
@@ -58,6 +59,7 @@ public class MainBotTeleOp extends LinearOpMode {
     public void launcher() {
         double power = (Math.log(gamepad2.left_stick_y) / Math.PI) + 1;
         launcherRight.setPower(power);
+        launcherLeft.setPower(power);
         telemetry.addData("Launcher", launcherRight.getPower());
     }
 
@@ -145,6 +147,7 @@ public class MainBotTeleOp extends LinearOpMode {
         conveyorRight = hardwareMap.get(CRServo.class, "conveyorRight");
         conveyorLeft = hardwareMap.get(CRServo.class, "conveyorLeft");
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
+        launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         gate = hardwareMap.get(Servo.class, "gate");
         pushdown1 = hardwareMap.get(Servo.class, "pushdown1");
         pushdown2 = hardwareMap.get(Servo.class, "pushdown2");
