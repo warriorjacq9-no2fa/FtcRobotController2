@@ -5,6 +5,7 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -25,7 +26,8 @@ public class MainBotTeleOp extends LinearOpMode {
     private DcMotor launcherLeft;
     private DcMotor launcherRight;
     private DcMotor intakeM;
-    private DcMotor conveyorRight;
+    private CRServo conveyorRight;
+    private CRServo conveyorLeft;
     private Servo gate;
     private Servo pushdown1;
     private Servo pushdown2;
@@ -55,14 +57,16 @@ public class MainBotTeleOp extends LinearOpMode {
     public void launcher() {
         //launcherLeft.setPower(
         if(gamepad2.y) {
-            launcherRight.setPower(.69);
+            launcherRight.setPower(1);
+            launcherLeft.setPower(1);
         }
         else {
-            launcherRight.setPower(.6);
+            launcherRight.setPower(.69);
+            launcherLeft.setPower(.69);
         }
         telemetry.addData("Luancher", launcherLeft.getPower());
     }
-    public void intake() {
+    public void intake() { 
         if (gamepad2.b) {
             intakeM.setPower(-1);
         }
@@ -91,8 +95,10 @@ public class MainBotTeleOp extends LinearOpMode {
     public void conveyor() {
         if (gamepad2.left_bumper) {
             conveyorRight.setPower(1);
+            conveyorLeft.setPower(1);
         } else {
             conveyorRight.setPower(0);
+            conveyorLeft.setPower(0);
         }
         telemetry.addData("conveyor", conveyorRight.getPower());
 
@@ -134,7 +140,8 @@ public class MainBotTeleOp extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-        conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
+        conveyorRight = hardwareMap.get(CRServo.class, "conveyorRight");
+        conveyorLeft = hardwareMap.get(CRServo.class, "conveyorLeft");
         launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
         gate = hardwareMap.get(Servo.class, "gate");
