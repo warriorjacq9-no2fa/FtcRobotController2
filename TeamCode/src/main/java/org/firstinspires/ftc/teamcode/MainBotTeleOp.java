@@ -33,31 +33,6 @@ public class MainBotTeleOp extends LinearOpMode {
     private DcMotor lift;
 
     private Servo gate;
-    private Servo pushdown1;
-    private Servo pushdown2;
-    private Servo pushdown3;
-    private Servo pushdown4;
-    private DigitalChannel digitalTouch;
-    private DistanceSensor sensorColorRange;
-    private Limelight3A limelight;
-
-    //private Servo servoTest;
-    public void limelight() {
-        LLResult result = limelight.getLatestResult();
-        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-        for (LLResultTypes.FiducialResult fiducial : fiducials) {
-            int id = fiducial.getFiducialId(); // The ID number of the fiducial
-            double xdegrees = fiducial.getTargetXDegrees(); // Where it is (left-right)
-            double ydegrees = fiducial.getTargetYDegrees(); // Where it is (up-down)
-            double distance = fiducial.getTargetPoseCameraSpace().getPosition().z;
-            telemetry.addData("Fiducial ", id);
-            telemetry.addData("xdegrees", xdegrees);
-            telemetry.addData("ydegrees", ydegrees);
-            telemetry.addData("distance", distance);
-
-        }
-    }
-
     public void launcher() {
         double power = (Math.log(gamepad2.left_stick_y) / Math.PI) + 1;
         launcherRight.setPower(power);
@@ -76,10 +51,6 @@ public class MainBotTeleOp extends LinearOpMode {
     public void gate() {
         if(gamepad2.right_bumper) {
             gate.setPosition(.5);
-            pushdown1.setPosition(1);
-            pushdown2.setPosition(1);
-            pushdown3.setPosition(1);
-            pushdown4.setPosition(1);
 
         } else {
             gate.setPosition(1);
