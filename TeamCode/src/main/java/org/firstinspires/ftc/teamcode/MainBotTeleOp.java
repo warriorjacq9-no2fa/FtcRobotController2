@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.AutoCommon.drive;
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -81,11 +83,6 @@ public class MainBotTeleOp extends LinearOpMode {
 
         } else {
             gate.setPosition(1);
-            pushdown1.setPosition(.5);
-            pushdown2.setPosition(.5);
-            pushdown3.setPosition(.5);
-            pushdown4.setPosition(.5);
-        }
     }
 
     public void conveyor() {
