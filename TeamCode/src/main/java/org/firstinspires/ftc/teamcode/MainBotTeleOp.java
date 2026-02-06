@@ -31,10 +31,6 @@ public class MainBotTeleOp extends LinearOpMode {
     private DcMotor lift;
 
     private Servo gate;
-    private Servo pushdown1;
-    private Servo pushdown2;
-    private Servo pushdown3;
-    private Servo pushdown4;
     private DigitalChannel digitalTouch;
     private DistanceSensor sensorColorRange;
     private Limelight3A limelight;
@@ -74,17 +70,9 @@ public class MainBotTeleOp extends LinearOpMode {
     public void gate() {
         if(gamepad2.right_bumper) {
             gate.setPosition(.5);
-            pushdown1.setPosition(1);
-            pushdown2.setPosition(1);
-            pushdown3.setPosition(1);
-            pushdown4.setPosition(1);
 
         } else {
             gate.setPosition(1);
-            pushdown1.setPosition(.5);
-            pushdown2.setPosition(.5);
-            pushdown3.setPosition(.5);
-            pushdown4.setPosition(.5);
         }
     }
 
@@ -149,10 +137,6 @@ public class MainBotTeleOp extends LinearOpMode {
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
         launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         gate = hardwareMap.get(Servo.class, "gate");
-        pushdown1 = hardwareMap.get(Servo.class, "pushdown1");
-        pushdown2 = hardwareMap.get(Servo.class, "pushdown2");
-        pushdown3 = hardwareMap.get(Servo.class, "pushdown3");
-        pushdown4 = hardwareMap.get(Servo.class, "pushdown4");
         lift = hardwareMap.get(DcMotor.class, "lift");
 
         conveyorRight.setPower(0);
