@@ -83,6 +83,7 @@ public class MainBotTeleOp extends LinearOpMode {
 
         } else {
             gate.setPosition(1);
+        }
     }
 
     public void conveyor() {
