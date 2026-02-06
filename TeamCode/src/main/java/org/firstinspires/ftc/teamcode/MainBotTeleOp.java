@@ -146,10 +146,6 @@ public class MainBotTeleOp extends LinearOpMode {
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
         launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         gate = hardwareMap.get(Servo.class, "gate");
-        pushdown1 = hardwareMap.get(Servo.class, "pushdown1");
-        pushdown2 = hardwareMap.get(Servo.class, "pushdown2");
-        pushdown3 = hardwareMap.get(Servo.class, "pushdown3");
-        pushdown4 = hardwareMap.get(Servo.class, "pushdown4");
         lift = hardwareMap.get(DcMotor.class, "lift");
 
         conveyorRight.setPower(0);
