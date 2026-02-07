@@ -50,7 +50,7 @@ public class MainBotTeleOp extends LinearOpMode {
     }
 
     public void launcher() {
-        double power = ((Math.log(gamepad2.left_stick_y) / Math.PI) + 1)/2;
+        double power = ((Math.log((gamepad2.left_stick_y +1) /2) / Math.PI) + 1)/5;
         launcherRight.setPower(power);
         launcherLeft.setPower(power);
         telemetry.addData("Launcher", launcherRight.getPower());
