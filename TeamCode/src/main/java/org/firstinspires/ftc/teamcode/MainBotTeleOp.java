@@ -95,10 +95,10 @@ public class MainBotTeleOp extends LinearOpMode {
         x = gamepad1.left_stick_x;
         rx = gamepad1.right_stick_x;
 
-        frontLeft.setPower(y + x - rx);
-        frontRight.setPower(y - x + rx);
-        backLeft.setPower(y - x - rx);
-        backRight.setPower(y + x + rx);
+        frontLeft.setPower(y - x - rx);
+        frontRight.setPower(y + x + rx);
+        backLeft.setPower(y + x - rx);
+        backRight.setPower(y - x + rx);
         telemetry.addData("x", x);
         telemetry.addData("y", y);
         telemetry.addData("rx", rx);

@@ -86,7 +86,7 @@ public class BotAuto_Old extends OpMode {
             case DRIVING_AWAY:
                 if (AutoCommon.drive_rel(
                         true,
-                        0, 18, 0, 1,
+                        0, 20, 0, 1,
                         DistanceUnit.INCH, AngleUnit.DEGREES, 1
                 )) {
                     autonomousState = AutonomousState.LAUNCH;
@@ -96,7 +96,7 @@ public class BotAuto_Old extends OpMode {
             case DRIVING_AWAY_WAIT:
                 if (AutoCommon.drive_rel(
                         false,
-                        0, 18, 0, 1,
+                        0, 20, 0, 1,
                         DistanceUnit.INCH, AngleUnit.DEGREES, 1
                 )) {
                     autonomousState = AutonomousState.LAUNCH;
@@ -117,7 +117,7 @@ public class BotAuto_Old extends OpMode {
             case DRIVING_OFF:
                 if(AutoCommon.drive_rel(
                         true,
-                        6, 12, 0, 1,
+                        6, (alliance == Alliance.RED ? 17 : -17), 0, 1,
                         DistanceUnit.INCH, AngleUnit.DEGREES, 1
                 )) {
                     autonomousState = AutonomousState.COMPLETE;
@@ -127,7 +127,7 @@ public class BotAuto_Old extends OpMode {
             case DRIVING_OFF_WAIT:
                 if(AutoCommon.drive_rel(
                         false,
-                        6, 12, 0, 1,
+                        6, (alliance == Alliance.RED ? 17 : -17), 0, 1,
                         DistanceUnit.INCH, AngleUnit.DEGREES, 1
                 )) {
                     autonomousState = AutonomousState.COMPLETE;

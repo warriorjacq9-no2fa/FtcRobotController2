@@ -382,14 +382,14 @@ public class AutoCommon {
                 break;
 
             case LAUNCHERS:
-                launcherRight.setPower(0.6);
-                launcherLeft.setPower(0.6);
+                launcherRight.setPower(0.69);
+                launcherLeft.setPower(0.69);
                 if(spinTimer.seconds() > 2) launchState = LaunchState.GATE_OPEN;
                 shotTimer.reset();
                 break;
 
             case GATE_OPEN:
-                gate.setPosition(0.5);
+                gate.setPosition(1);
                 if (shotTimer.seconds() > 0.25) {
                     launchState = LaunchState.CONVEYOR;
                     shotTimer.reset();
@@ -410,7 +410,7 @@ public class AutoCommon {
             
             case GATE_CLOSE:
                 conveyorRight.setPower(0);
-                gate.setPosition(1);
+                gate.setPosition(0.65);
                 if(shotTimer.seconds() > 0.25) {
                     launchState = LaunchState.GATE_OPEN;
                     shotTimer.reset();
