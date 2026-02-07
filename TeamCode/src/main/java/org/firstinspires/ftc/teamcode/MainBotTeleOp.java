@@ -69,7 +69,7 @@ public class MainBotTeleOp extends LinearOpMode {
             gate.setPosition(1);
 
         } else {
-            gate.setPosition(0.5);
+            gate.setPosition(0.65);
         }
     }
 
