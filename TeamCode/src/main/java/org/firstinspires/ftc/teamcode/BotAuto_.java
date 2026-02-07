@@ -77,7 +77,7 @@ public class BotAuto_ extends OpMode {
         drivePath = PathParser.parse(hardwareMap.appContext
                 .getResources().getXml(R.xml.drivepath), alliance.name(), telemetry);
         telemetry.update();
-        AutoCommon.start();
+        AutoCommon.start(0,0,0, DistanceUnit.INCH, AngleUnit.DEGREES );
         delayTime.reset();
         
         intakeM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

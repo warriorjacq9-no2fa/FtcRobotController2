@@ -25,7 +25,7 @@ public class BotAuto_2 extends OpMode {
 
     @Override
     public void start() {
-        AutoCommon.start();
+        AutoCommon.start(0,0,0, DistanceUnit.INCH, AngleUnit.DEGREES);
     }
 
     @Override

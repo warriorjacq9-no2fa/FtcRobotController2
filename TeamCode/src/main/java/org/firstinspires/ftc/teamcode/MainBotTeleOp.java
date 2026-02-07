@@ -26,10 +26,7 @@ public class MainBotTeleOp extends LinearOpMode {
     private DcMotor launcherRight;
     private DcMotor launcherLeft;
     private DcMotor intakeM;
-    private CRServo conveyorRight;
-    private CRServo conveyorLeft;
-    private DcMotor lift;
-
+    private DcMotor conveyorRight;
     private Servo gate;
     private DigitalChannel digitalTouch;
     private DistanceSensor sensorColorRange;
@@ -79,10 +76,8 @@ public class MainBotTeleOp extends LinearOpMode {
     public void conveyor() {
         if (gamepad2.left_bumper) {
             conveyorRight.setPower(1);
-            conveyorLeft.setPower(1);
         } else {
             conveyorRight.setPower(0);
-            conveyorLeft.setPower(0);
         }
         telemetry.addData("conveyor", conveyorRight.getPower());
 
@@ -111,15 +106,6 @@ public class MainBotTeleOp extends LinearOpMode {
         telemetry.addData("Status", "Running");
     }
 
-    public void lifts() {
-        if(gamepad1.left_bumper) {
-            lift.setPower(1);
-        } else {
-            lift.setPower(0);
-        }
-    }
-
-
     @Override
     public void runOpMode() {
 
@@ -132,12 +118,10 @@ public class MainBotTeleOp extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-        conveyorRight = hardwareMap.get(CRServo.class, "conveyorRight");
-        conveyorLeft = hardwareMap.get(CRServo.class, "conveyorLeft");
+        conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
         launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         gate = hardwareMap.get(Servo.class, "gate");
-        lift = hardwareMap.get(DcMotor.class, "lift");
 
         conveyorRight.setPower(0);
         //launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -162,7 +146,6 @@ public class MainBotTeleOp extends LinearOpMode {
             gate();
             conveyor();
             launcher();
-            lifts();
         }
         telemetry.update();
     }
