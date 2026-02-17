@@ -75,8 +75,10 @@ public class StarterBotGobildaTeleop extends OpMode {
     final double LAUNCHER_MIN_VELOCITY = 1075;
 
     // Declare OpMode members.
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private DcMotor frontLeft;
+    private DcMotor frontRight;
+    private DcMotor backLeft;
+    private DcMotor backRight;
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
@@ -124,8 +126,10 @@ public class StarterBotGobildaTeleop extends OpMode {
          * to 'get' must correspond to the names assigned during the robot configuration
          * step.
          */
-        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
@@ -137,8 +141,6 @@ public class StarterBotGobildaTeleop extends OpMode {
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90 Deg drives may require direction flips
          */
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         /*
          * Here we set our launcher to the RUN_USING_ENCODER runmode.
@@ -154,8 +156,6 @@ public class StarterBotGobildaTeleop extends OpMode {
          * slow down much faster when it is coasting. This creates a much more controllable
          * drivetrain. As the robot stops much quicker.
          */
-        leftDrive.setZeroPowerBehavior(BRAKE);
-        rightDrive.setZeroPowerBehavior(BRAKE);
         launcher.setZeroPowerBehavior(BRAKE);
 
         /*
@@ -206,7 +206,7 @@ public class StarterBotGobildaTeleop extends OpMode {
          * both motors work to rotate the robot. Combinations of these inputs can be used to create
          * more complex maneuvers.
          */
-        arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+        arcadeDrive();
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
@@ -239,15 +239,25 @@ public class StarterBotGobildaTeleop extends OpMode {
     public void stop() {
     }
 
-    void arcadeDrive(double forward, double rotate) {
-        leftPower = forward + rotate;
-        rightPower = forward - rotate;
+    void arcadeDrive() {
+        double y = 0; // Remember, Y stick is reversed!
+        double x = 0;
+        double rx = 0;
+        // run until the end of the match (driver presses STOP)
 
-        /*
-         * Send calculated power to wheels
-         */
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
+        y = -gamepad1.left_stick_y;
+        x = gamepad1.left_stick_x;
+        rx = gamepad1.right_stick_x;
+
+        frontLeft.setPower(y - x - rx);
+        frontRight.setPower(y + x + rx);
+        backLeft.setPower(y + x - rx);
+        backRight.setPower(y - x + rx);
+        telemetry.addData("x", x);
+        telemetry.addData("y", y);
+        telemetry.addData("rx", rx);
+        telemetry.addData("Motor Power", frontLeft.getPower());
+        telemetry.addData("Status", "Running");
     }
 
     void launch(boolean shotRequested) {
